@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroNexus - Smart Flood Prediction & Drainage Monitoring</title>
+    <meta name="description" content="HydroNexus provides real-time flood prediction and drainage monitoring to prevent urban flooding through smart infrastructure management.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/main.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container flex items-center justify-between py-4">
+            <a href="/" class="navbar-brand">
+                🌊 HydroNexus
+            </a>
+            <ul class="navbar-nav">
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#monitoring" class="nav-link">Monitoring</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="/citizen" class="nav-link">For Citizens</a></li>
+                <li><a href="/admin" class="nav-link">Admin Portal</a></li>
+                <li><a href="/login" class="btn btn-primary btn-sm">Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gray-50 py-8">
+        <div class="container">
+            <div class="grid grid-cols-2 items-center">
+                <div class="py-8">
+                    <h1 class="text-2xl font-bold mb-4">
+                        Smart Flood Prediction & 
+                        <span class="text-primary">Drainage Monitoring</span>
+                    </h1>
+                    <p class="text-lg text-secondary mb-6">
+                        HydroNexus provides real-time alerts and helps authorities detect blockage-prone areas 
+                        to prevent urban flooding. Transform reactive disaster relief into cost-effective, 
+                        preventative maintenance.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="/citizen" class="btn btn-primary btn-lg">
+                            🚨 Citizen Alerts
+                        </a>
+                        <a href="/admin" class="btn btn-secondary btn-lg">
+                            🏛️ Admin Dashboard
+                        </a>
+                    </div>
+                </div>
+                <div class="py-8 text-center">
+                    <div class="card p-6">
+                        <div class="text-6xl mb-4">🏙️</div>
+                        <h3 class="text-xl font-semibold mb-2">Real-time Monitoring</h3>
+                        <p class="text-secondary">Advanced sensor networks monitoring drainage infrastructure across the city</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Status Section -->
+    <section class="py-8">
+        <div class="container">
+            <h2 class="text-center mb-6">System Status Overview</h2>
+            <div class="grid grid-cols-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-3xl mb-2">📊</div>
+                        <h4 class="font-semibold">Active Nodes</h4>
+                        <p class="text-2xl font-bold text-primary" id="activeNodes">--</p>
+                        <p class="text-sm text-secondary">Monitoring Points</p>
+                    </div>
+                </div>
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-3xl mb-2">🚨</div>
+                        <h4 class="font-semibold">Active Alerts</h4>
+                        <p class="text-2xl font-bold text-warning" id="activeAlerts">--</p>
+                        <p class="text-sm text-secondary">Current Warnings</p>
+                    </div>
+                </div>
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-3xl mb-2">💧</div>
+                        <h4 class="font-semibold">Water Level</h4>
+                        <p class="text-2xl font-bold text-success" id="avgWaterLevel">--</p>
+                        <p class="text-sm text-secondary">Average %</p>
+                    </div>
+                </div>
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-3xl mb-2">⚡</div>
+                        <h4 class="font-semibold">System Health</h4>
+                        <div class="status status-normal mt-2" id="systemHealth">
+                            <span>Normal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="bg-gray-50 py-8">
+        <div class="container">
+            <div class="text-center mb-8">
+                <h2 class="text-xl font-bold mb-4">Comprehensive Flood Prevention</h2>
+                <p class="text-lg text-secondary">
+                    Advanced monitoring and predictive analytics for urban drainage infrastructure
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">🌊</div>
+                        <h4 class="font-semibold mb-2">Real-time Monitoring</h4>
+                        <p class="text-secondary">
+                            Continuous monitoring of drainage nodes with advanced sensors detecting 
+                            water levels, blockages, and flow rates.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">📱</div>
+                        <h4 class="font-semibold mb-2">Dual Interface System</h4>
+                        <p class="text-secondary">
+                            Separate interfaces for citizens to receive alerts and report issues, 
+                            and administrators to manage infrastructure.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">🔧</div>
+                        <h4 class="font-semibold mb-2">Preventive Maintenance</h4>
+                        <p class="text-secondary">
+                            Transition from reactive disaster relief to cost-effective preventive 
+                            maintenance through early detection.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">📈</div>
+                        <h4 class="font-semibold mb-2">Predictive Analytics</h4>
+                        <p class="text-secondary">
+                            Advanced algorithms analyze historical data and current conditions 
+                            to predict potential flooding events.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">🚨</div>
+                        <h4 class="font-semibold mb-2">Smart Alerts</h4>
+                        <p class="text-secondary">
+                            Automated alert system with severity levels, targeted notifications, 
+                            and emergency response coordination.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">🗺️</div>
+                        <h4 class="font-semibold mb-2">Geographic Mapping</h4>
+                        <p class="text-secondary">
+                            Interactive maps showing drainage infrastructure, risk zones, 
+                            and real-time status of monitoring points.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Alerts Section -->
+    <section class="py-8">
+        <div class="container">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-bold">Recent System Activity</h2>
+                <a href="/monitoring" class="btn btn-secondary btn-sm">View All Activity</a>
+            </div>
+            
+            <div class="grid grid-cols-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="font-semibold">Current Alerts</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentAlerts">
+                            <div class="flex justify-between items-center mb-3">
+                                <div>
+                                    <div class="font-semibold">Park Avenue Catch Basin</div>
+                                    <div class="text-sm text-secondary">High water level detected</div>
+                                </div>
+                                <span class="status status-warning">Warning</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div>
+                                    <div class="font-semibold">Industrial Zone Pump Station</div>
+                                    <div class="text-sm text-secondary">Critical blockage level</div>
+                                </div>
+                                <span class="status status-critical">Critical</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold">Main Street Storm Drain</div>
+                                    <div class="text-sm text-secondary">Normal operation</div>
+                                </div>
+                                <span class="status status-normal">Normal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="font-semibold">Citizen Reports</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentReports">
+                            <div class="flex justify-between items-center mb-3">
+                                <div>
+                                    <div class="font-semibold">Drainage blockage reported</div>
+                                    <div class="text-sm text-secondary">Central Ward - 2 hours ago</div>
+                                </div>
+                                <span class="status status-warning">Investigating</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div>
+                                    <div class="font-semibold">Minor flood concern</div>
+                                    <div class="text-sm text-secondary">East Delhi - 4 hours ago</div>
+                                </div>
+                                <span class="status status-normal">Resolved</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold">Maintenance request</div>
+                                    <div class="text-sm text-secondary">Industrial Zone - 6 hours ago</div>
+                                </div>
+                                <span class="status status-warning">Scheduled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section id="about" class="bg-primary py-8">
+        <div class="container text-center">
+            <h2 class="text-xl font-bold mb-4" style="color: white;">
+                Building Resilient Urban Communities
+            </h2>
+            <p class="text-lg mb-6" style="color: rgba(255,255,255,0.9);">
+                HydroNexus helps cities transition from reactive disaster management to proactive 
+                infrastructure monitoring, ensuring regional rural-urban hubs are resilient against flooding.
+            </p>
+            <div class="flex justify-center gap-4">
+                <a href="/citizen" class="btn" style="background-color: white; color: var(--primary-blue);">
+                    Get Alerts & Report Issues
+                </a>
+                <a href="/admin" class="btn btn-secondary">
+                    Administrative Access
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 py-6">
+        <div class="container">
+            <div class="grid grid-cols-4">
+                <div>
+                    <h4 class="font-semibold mb-3" style="color: white;">HydroNexus</h4>
+                    <p class="text-sm" style="color: rgba(255,255,255,0.7);">
+                        Smart flood prediction and drainage monitoring system for urban resilience.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="font-semibold mb-3" style="color: white;">For Citizens</h5>
+                    <ul class="space-y-2">
+                        <li><a href="/citizen" style="color: rgba(255,255,255,0.7); text-decoration: none;">Flood Alerts</a></li>
+                        <li><a href="/citizen" style="color: rgba(255,255,255,0.7); text-decoration: none;">Report Issues</a></li>
+                        <li><a href="/monitoring" style="color: rgba(255,255,255,0.7); text-decoration: none;">Live Status</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-semibold mb-3" style="color: white;">For Admins</h5>
+                    <ul class="space-y-2">
+                        <li><a href="/admin" style="color: rgba(255,255,255,0.7); text-decoration: none;">Dashboard</a></li>
+                        <li><a href="/admin" style="color: rgba(255,255,255,0.7); text-decoration: none;">Analytics</a></li>
+                        <li><a href="/admin" style="color: rgba(255,255,255,0.7); text-decoration: none;">Node Management</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-semibold mb-3" style="color: white;">Contact</h5>
+                    <p class="text-sm" style="color: rgba(255,255,255,0.7);">
+                        Emergency: 911<br>
+                        Support: help@hydronexus.com<br>
+                        Technical: tech@hydronexus.com
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-6 pt-6 text-center">
+                <p class="text-sm" style="color: rgba(255,255,255,0.7);">
+                    © 2026 HydroNexus. All rights reserved. Built for urban flood resilience.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="/js/main.js"></script>
+    
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+            loadSystemStatus();
+        });
+
+        // Load real-time system status
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/drainage/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('activeNodes').textContent = data.data.activeNodes || '3';
+                    document.getElementById('activeAlerts').textContent = data.data.activeAlerts || '2';
+                    document.getElementById('avgWaterLevel').textContent = (data.data.avgWaterLevel || 45) + '%';
+                    
+                    const health = document.getElementById('systemHealth');
+                    const healthStatus = data.data.systemHealth || 'normal';
+                    health.className = `status status-${healthStatus}`;
+                    health.textContent = healthStatus.charAt(0).toUpperCase() + healthStatus.slice(1);
+                }
+            } catch (error) {
+                console.error('Error loading system status:', error);
+                // Set default values
+                document.getElementById('activeNodes').textContent = '3';
+                document.getElementById('activeAlerts').textContent = '2';
+                document.getElementById('avgWaterLevel').textContent = '45%';
+            }
+        }
+
+        // Auto-refresh status every 30 seconds
+        setInterval(loadSystemStatus, 30000);
+    </script>
+</body>
+</html>

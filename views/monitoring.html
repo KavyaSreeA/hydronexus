@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Monitoring - HydroNexus</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/main.css">
+    
+    <style>
+        .monitoring-header {
+            background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+            color: white;
+            padding: 1.5rem 0;
+        }
+        
+        .monitoring-header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .monitoring-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+        
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: #68d391;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .monitoring-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            min-height: calc(100vh - 100px);
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .stats-card h3 {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #4a5568;
+            font-size: 0.875rem;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+        
+        .stat-value.normal { color: #38a169; }
+        .stat-value.warning { color: #d69e2e; }
+        .stat-value.critical { color: #e53e3e; }
+        
+        .nodes-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            flex: 1;
+        }
+        
+        .nodes-list-header {
+            padding: 1rem 1.25rem;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nodes-list-header h3 {
+            font-size: 1rem;
+            color: #2d3748;
+        }
+        
+        .filter-btn {
+            padding: 0.375rem 0.75rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .nodes-list-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .node-item {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .node-item:hover {
+            background: #f7fafc;
+        }
+        
+        .node-item.selected {
+            background: #eef2ff;
+            border-left: 3px solid #667eea;
+        }
+        
+        .node-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .node-id {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .node-status {
+            padding: 0.25rem 0.625rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .node-status.normal { background: #c6f6d5; color: #276749; }
+        .node-status.warning { background: #fefcbf; color: #975a16; }
+        .node-status.critical { background: #fed7d7; color: #c53030; }
+        .node-status.offline { background: #e2e8f0; color: #4a5568; }
+        
+        .node-name {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+        
+        .node-metrics {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+        
+        .metric {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .map-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            flex: 1;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #718096;
+        }
+        
+        .alerts-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .alerts-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .alerts-header h3 {
+            font-size: 1rem;
+            color: #2d3748;
+        }
+        
+        .alert-count {
+            background: #e53e3e;
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .alerts-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .alert-item {
+            padding: 0.875rem 1.25rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .alert-icon {
+            font-size: 1.25rem;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+        
+        .alert-meta {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        
+        .alert-severity {
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .alert-severity.critical { background: #fed7d7; color: #c53030; }
+        .alert-severity.high { background: #feebc8; color: #c05621; }
+        .alert-severity.medium { background: #fefcbf; color: #975a16; }
+        .alert-severity.low { background: #c6f6d5; color: #276749; }
+        
+        .no-alerts {
+            padding: 2rem;
+            text-align: center;
+            color: #a0aec0;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.25rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .progress-fill.low { background: #38a169; }
+        .progress-fill.medium { background: #d69e2e; }
+        .progress-fill.high { background: #e53e3e; }
+    </style>
+</head>
+<body style="background: #f0f4f8;">
+    <div class="monitoring-header">
+        <div class="container">
+            <div>
+                <a href="/" style="color: white; text-decoration: none;">
+                    <h1>🌊 HydroNexus Monitoring</h1>
+                </a>
+            </div>
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                <span>Live Data</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="monitoring-grid">
+        <div class="sidebar">
+            <!-- System Stats -->
+            <div class="stats-card">
+                <h3>System Overview</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Active Nodes</span>
+                    <span class="stat-value" id="activeNodes">--</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Normal</span>
+                    <span class="stat-value normal" id="normalCount">--</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Warning</span>
+                    <span class="stat-value warning" id="warningCount">--</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Critical</span>
+                    <span class="stat-value critical" id="criticalCount">--</span>
+                </div>
+            </div>
+            
+            <!-- Average Metrics -->
+            <div class="stats-card">
+                <h3>Average Metrics</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Water Level</span>
+                    <span class="stat-value" id="avgWaterLevel">--%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill low" id="waterLevelBar" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Nodes List -->
+            <div class="nodes-list">
+                <div class="nodes-list-header">
+                    <h3>Drainage Nodes</h3>
+                    <div class="filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="critical">Critical</button>
+                    </div>
+                </div>
+                <div class="nodes-list-content" id="nodesList">
+                    <div class="no-alerts">Loading nodes...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Map Placeholder -->
+            <div class="map-container">
+                <div style="text-align: center;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🗺️</div>
+                    <p>Interactive Map</p>
+                    <p style="font-size: 0.875rem;">Integrate with Leaflet or Google Maps for real-time node visualization</p>
+                </div>
+            </div>
+            
+            <!-- Active Alerts -->
+            <div class="alerts-panel">
+                <div class="alerts-header">
+                    <h3>🚨 Active Alerts</h3>
+                    <span class="alert-count" id="alertCount">0</span>
+                </div>
+                <div class="alerts-list" id="alertsList">
+                    <div class="no-alerts">No active alerts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Initialize Socket.IO connection
+        const socket = io();
+        
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            socket.emit('join-room', 'monitoring');
+        });
+        
+        // Fetch initial data
+        async function fetchData() {
+            try {
+                // Fetch drainage statistics
+                const statsRes = await fetch('/api/drainage/statistics');
+                const statsData = await statsRes.json();
+                
+                if (statsData.success) {
+                    const data = statsData.data;
+                    document.getElementById('activeNodes').textContent = data.totalNodes || 0;
+                    document.getElementById('normalCount').textContent = data.statusCounts?.normal || 0;
+                    document.getElementById('warningCount').textContent = data.statusCounts?.warning || 0;
+                    document.getElementById('criticalCount').textContent = data.statusCounts?.critical || 0;
+                    
+                    const avgWl = Math.round(data.avgWaterLevel || 0);
+                    document.getElementById('avgWaterLevel').textContent = avgWl + '%';
+                    
+                    const bar = document.getElementById('waterLevelBar');
+                    bar.style.width = avgWl + '%';
+                    bar.className = 'progress-fill ' + (avgWl >= 70 ? 'high' : avgWl >= 40 ? 'medium' : 'low');
+                }
+                
+                // Fetch nodes
+                const nodesRes = await fetch('/api/drainage');
+                const nodesData = await nodesRes.json();
+                
+                if (nodesData.success) {
+                    renderNodes(nodesData.data.nodes);
+                }
+                
+                // Fetch active alerts
+                const alertsRes = await fetch('/api/alerts/active');
+                const alertsData = await alertsRes.json();
+                
+                if (alertsData.success) {
+                    renderAlerts(alertsData.data.alerts);
+                    document.getElementById('alertCount').textContent = alertsData.data.count || 0;
+                }
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+            }
+        }
+        
+        function renderNodes(nodes) {
+            const container = document.getElementById('nodesList');
+            
+            if (!nodes || nodes.length === 0) {
+                container.innerHTML = '<div class="no-alerts">No nodes found</div>';
+                return;
+            }
+            
+            container.innerHTML = nodes.map(node => {
+                const status = node.currentStatus?.operationalStatus || 'normal';
+                const waterLevel = node.currentStatus?.waterLevel?.current || 0;
+                const blockage = node.currentStatus?.blockageLevel?.current || 0;
+                
+                return `
+                    <div class="node-item" data-node-id="${node.nodeId}">
+                        <div class="node-item-header">
+                            <span class="node-id">${node.nodeId}</span>
+                            <span class="node-status ${status}">${status}</span>
+                        </div>
+                        <div class="node-name">${node.name}</div>
+                        <div class="node-metrics">
+                            <div class="metric">
+                                💧 <span class="metric-value">${waterLevel}%</span>
+                            </div>
+                            <div class="metric">
+                                🚫 <span class="metric-value">${blockage}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderAlerts(alerts) {
+            const container = document.getElementById('alertsList');
+            
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<div class="no-alerts">No active alerts</div>';
+                return;
+            }
+            
+            container.innerHTML = alerts.map(alert => {
+                const icon = {
+                    'flood_warning': '🌊',
+                    'drainage_blockage': '🚫',
+                    'overflow_risk': '⚠️',
+                    'maintenance_required': '🔧',
+                    'sensor_malfunction': '📡',
+                    'emergency': '🚨'
+                }[alert.type] || '⚡';
+                
+                const time = new Date(alert.timeline?.createdAt).toLocaleString();
+                
+                return `
+                    <div class="alert-item">
+                        <span class="alert-icon">${icon}</span>
+                        <div class="alert-content">
+                            <div class="alert-title">${alert.title}</div>
+                            <div class="alert-meta">${time}</div>
+                        </div>
+                        <span class="alert-severity ${alert.severity}">${alert.severity}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Real-time updates
+        socket.on('sensor-update', (data) => {
+            console.log('Sensor update:', data);
+            fetchData(); // Refresh data
+        });
+        
+        socket.on('new-alert', (alert) => {
+            console.log('New alert:', alert);
+            fetchData(); // Refresh alerts
+        });
+        
+        socket.on('alert-updated', (data) => {
+            console.log('Alert updated:', data);
+            fetchData();
+        });
+        
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.dataset.filter;
+                let url = '/api/drainage';
+                
+                if (filter !== 'all') {
+                    url = `/api/drainage/status/${filter}`;
+                }
+                
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    renderNodes(data.data.nodes);
+                } catch (error) {
+                    console.error('Filter error:', error);
+                }
+            });
+        });
+        
+        // Initial load
+        fetchData();
+        
+        // Refresh every 30 seconds
+        setInterval(fetchData, 30000);
+    </script>
+</body>
+</html>

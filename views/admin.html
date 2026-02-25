@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - HydroNexus</title>
+    <meta name="description" content="Administrative dashboard for HydroNexus flood prediction and drainage monitoring">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/main.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        .sidebar {
+            width: 250px;
+            background: var(--white);
+            border-right: 1px solid var(--gray-200);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 30;
+            transition: transform var(--transition-normal);
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            background: var(--gray-50);
+            transition: margin-left var(--transition-normal);
+        }
+        
+        .sidebar.collapsed + .main-content {
+            margin-left: 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--gray-600);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-item:hover {
+            background: var(--gray-50);
+            color: var(--gray-900);
+        }
+        
+        .sidebar-item.active {
+            background: var(--primary-blue);
+            color: var(--white);
+            border-left-color: var(--white);
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+            margin-right: 12px;
+        }
+        
+        .admin-header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+            color: white;
+            border-radius: var(--radius-lg);
+        }
+        
+        .stats-card.warning {
+            background: linear-gradient(135deg, var(--accent-orange), #fb923c);
+        }
+        
+        .stats-card.success {
+            background: linear-gradient(135deg, var(--accent-green), #34d399);
+        }
+        
+        .stats-card.danger {
+            background: linear-gradient(135deg, var(--accent-red), #f87171);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        #adminMap {
+            height: 500px;
+            border-radius: var(--radius-lg);
+        }
+        
+        .node-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .node-status.normal { background: var(--accent-green); }
+        .node-status.warning { background: var(--accent-orange); }
+        .node-status.critical { background: var(--accent-red); }
+        .node-status.offline { background: var(--gray-400); }
+        
+        .data-table {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .data-table th {
+            background: var(--gray-50);
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .data-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .alert-row {
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .alert-row:hover {
+            background: var(--gray-50);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            max-width: 800px;
+            width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-primary">🌊 HydroNexus</h2>
+            <p class="text-sm text-secondary">Admin Dashboard</p>
+        </div>
+        
+        <nav class="py-4">
+            <a href="#overview" class="sidebar-item active" data-section="overview">
+                <i data-feather="home"></i>
+                <span>Overview</span>
+            </a>
+            <a href="#drainage" class="sidebar-item" data-section="drainage">
+                <i data-feather="droplets"></i>
+                <span>Drainage Nodes</span>
+            </a>
+            <a href="#alerts" class="sidebar-item" data-section="alerts">
+                <i data-feather="alert-triangle"></i>
+                <span>Alert Management</span>
+            </a>
+            <a href="#reports" class="sidebar-item" data-section="reports">
+                <i data-feather="file-text"></i>
+                <span>Citizen Reports</span>
+            </a>
+            <a href="#analytics" class="sidebar-item" data-section="analytics">
+                <i data-feather="bar-chart-2"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#maintenance" class="sidebar-item" data-section="maintenance">
+                <i data-feather="settings"></i>
+                <span>Maintenance</span>
+            </a>
+            <a href="#users" class="sidebar-item" data-section="users">
+                <i data-feather="users"></i>
+                <span>User Management</span>
+            </a>
+        </nav>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+            <div class="flex items-center mb-3">
+                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    A
+                </div>
+                <div class="ml-3">
+                    <div class="font-semibold text-sm" id="adminUserName">Admin User</div>
+                    <div class="text-xs text-secondary" id="adminRole">Administrator</div>
+                </div>
+            </div>
+            <button onclick="logout()" class="btn btn-secondary btn-sm w-full">
+                <i data-feather="log-out" class="mr-2"></i>
+                Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <div class="admin-header">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <button onclick="toggleSidebar()" class="btn btn-secondary btn-sm mr-4 md:hidden">
+                        <i data-feather="menu"></i>
+                    </button>
+                    <h1 class="text-xl font-semibold" id="pageTitle">System Overview</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-secondary" id="lastUpdate">
+                        Last updated: <span id="lastUpdateTime">--</span>
+                    </div>
+                    <button onclick="refreshData()" class="btn btn-primary btn-sm">
+                        <i data-feather="refresh-cw"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overview Section -->
+        <section id="overview-section" class="section-content p-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-4 gap-6 mb-6">
+                <div class="stats-card p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-semibold">Total Nodes</h3>
+                        <i data-feather="droplets"></i>
+                    </div>
+                    <div class="text-3xl font-bold mb-2" id="totalNodes">--</div>
+                    <div class="text-sm opacity-90">Monitoring Points</div>
+                </div>
+                
+                <div class="stats-card warning p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-semibold">Active Alerts</h3>
+                        <i data-feather="alert-triangle"></i>
+                    </div>
+                    <div class="text-3xl font-bold mb-2" id="activeAlertsCount">--</div>
+                    <div class="text-sm opacity-90">Requiring Attention</div>
+                </div>
+                
+                <div class="stats-card success p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-semibold">System Health</h3>
+                        <i data-feather="activity"></i>
+                    </div>
+                    <div class="text-2xl font-bold mb-2" id="systemHealthStatus">Normal</div>
+                    <div class="text-sm opacity-90">Overall Status</div>
+                </div>
+                
+                <div class="stats-card p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="font-semibold">Citizen Reports</h3>
+                        <i data-feather="file-text"></i>
+                    </div>
+                    <div class="text-3xl font-bold mb-2" id="citizenReportsCount">--</div>
+                    <div class="text-sm opacity-90">Today</div>
+                </div>
+            </div>
+
+            <!-- Charts and Map -->
+            <div class="grid grid-cols-2 gap-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="font-semibold">Water Level Trends</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="waterLevelChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="font-semibold">Alert Distribution</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="alertDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="mt-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="font-semibold">Recent System Activity</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="space-y-3" id="recentActivity">
+                            <!-- Recent activities will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Drainage Nodes Section -->
+        <section id="drainage-section" class="section-content p-6 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Drainage Infrastructure</h2>
+                <div class="flex space-x-2">
+                    <button onclick="addNewNode()" class="btn btn-primary">
+                        <i data-feather="plus"></i>
+                        Add Node
+                    </button>
+                    <button onclick="exportNodeData()" class="btn btn-secondary">
+                        <i data-feather="download"></i>
+                        Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map View -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h3 class="font-semibold">Infrastructure Map</h3>
+                </div>
+                <div class="card-body">
+                    <div id="adminMap"></div>
+                </div>
+            </div>
+
+            <!-- Nodes Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="font-semibold">Drainage Nodes</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="data-table w-full">
+                        <thead>
+                            <tr>
+                                <th>Node ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Water Level</th>
+                                <th>Blockage</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nodesTableBody">
+                            <!-- Node data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Alerts Section -->
+        <section id="alerts-section" class="section-content p-6 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Alert Management</h2>
+                <div class="flex space-x-2">
+                    <button onclick="createNewAlert()" class="btn btn-primary">
+                        <i data-feather="plus"></i>
+                        Create Alert
+                    </button>
+                    <button onclick="sendBulkNotification()" class="btn btn-warning">
+                        <i data-feather="megaphone"></i>
+                        Send Notification
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert Filters -->
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="flex space-x-4 items-center">
+                        <select id="alertTypeFilter" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="flood_warning">Flood Warning</option>
+                            <option value="drainage_blockage">Drainage Blockage</option>
+                            <option value="overflow_risk">Overflow Risk</option>
+                            <option value="maintenance_required">Maintenance Required</option>
+                            <option value="emergency">Emergency</option>
+                        </select>
+                        
+                        <select id="alertSeverityFilter" class="form-select">
+                            <option value="">All Severities</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                        
+                        <select id="alertStatusFilter" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="acknowledged">Acknowledged</option>
+                            <option value="investigating">Investigating</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                        
+                        <button onclick="applyAlertFilters()" class="btn btn-secondary">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Table -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="data-table w-full">
+                        <thead>
+                            <tr>
+                                <th>Alert ID</th>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Location</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alertsTableBody">
+                            <!-- Alert data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Other sections would continue here... -->
+        <!-- I'll create the additional sections in the next file -->
+        
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

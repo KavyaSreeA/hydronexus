@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Portal - HydroNexus</title>
+    <meta name="description" content="Stay informed about flood alerts and report drainage issues in your area">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/main.css">
+    
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        .alert-item {
+            border-left: 4px solid var(--gray-300);
+            transition: all var(--transition-fast);
+        }
+        .alert-item.critical { border-left-color: var(--accent-red); }
+        .alert-item.high { border-left-color: var(--accent-orange); }
+        .alert-item.medium { border-left-color: var(--accent-orange); }
+        .alert-item.low { border-left-color: var(--accent-green); }
+        
+        .alert-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        
+        #map {
+            height: 400px;
+            border-radius: var(--radius-lg);
+        }
+        
+        .floating-actions {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        
+        .fab {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 1rem;
+        }
+        
+        .emergency-banner {
+            background: linear-gradient(45deg, var(--accent-red), #dc2626);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .report-form {
+            max-width: 600px;
+        }
+        
+        .file-upload {
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary-blue);
+            background-color: var(--gray-50);
+        }
+        
+        .file-upload.dragover {
+            border-color: var(--primary-blue);
+            background-color: var(--gray-100);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container flex items-center justify-between py-4">
+            <a href="/" class="navbar-brand">🌊 HydroNexus</a>
+            <ul class="navbar-nav">
+                <li><a href="/citizen" class="nav-link active">Citizen Portal</a></li>
+                <li><a href="/monitoring" class="nav-link">Live Status</a></li>
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/login" class="btn btn-primary btn-sm">Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Emergency Banner (shown only when there are critical alerts) -->
+    <div id="emergencyBanner" class="emergency-banner py-3 text-center hidden">
+        <div class="container">
+            <p class="font-bold" style="color: white; margin-bottom: 0;">
+                🚨 EMERGENCY FLOOD ALERT - Immediate action required in your area
+            </p>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <section class="bg-gray-50 py-6">
+        <div class="container">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold mb-2">Citizen Alert Portal</h1>
+                <p class="text-lg text-secondary">
+                    Stay informed about flood risks and help keep your community safe
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Status Section -->
+    <section class="py-6">
+        <div class="container">
+            <div class="grid grid-cols-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-3xl mb-2">🌡️</div>
+                        <h4 class="font-semibold">Risk Level</h4>
+                        <div class="status status-normal mt-2" id="currentRiskLevel">
+                            <span>Low</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-3xl mb-2">⚠️</div>
+                        <h4 class="font-semibold">Active Alerts</h4>
+                        <p class="text-2xl font-bold text-warning" id="citizenActiveAlerts">0</p>
+                    </div>
+                </div>
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-3xl mb-2">📍</div>
+                        <h4 class="font-semibold">Your Area</h4>
+                        <p class="text-sm text-secondary" id="currentLocation">Detecting...</p>
+                    </div>
+                </div>
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-3xl mb-2">📋</div>
+                        <h4 class="font-semibold">My Reports</h4>
+                        <p class="text-2xl font-bold text-primary" id="userReports">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Tabs -->
+    <section class="py-6">
+        <div class="container">
+            <div class="mb-6">
+                <nav class="flex space-x-4">
+                    <button class="nav-tab active" data-tab="alerts">🚨 Current Alerts</button>
+                    <button class="nav-tab" data-tab="map">🗺️ Area Map</button>
+                    <button class="nav-tab" data-tab="report">📝 Report Issue</button>
+                    <button class="nav-tab" data-tab="emergency">🆘 Emergency Info</button>
+                </nav>
+            </div>
+
+            <!-- Alerts Tab -->
+            <div id="alerts-tab" class="tab-content active">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Active Alerts in Your Area</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="alertsContainer">
+                                <div class="text-center py-8">
+                                    <div class="text-4xl mb-4">🔄</div>
+                                    <p class="text-secondary">Loading alerts...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Weather Information</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="weatherInfo">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <div class="text-xl font-semibold" id="temperature">--°C</div>
+                                        <div class="text-sm text-secondary" id="weatherDescription">Loading...</div>
+                                    </div>
+                                    <div class="text-4xl" id="weatherIcon">☀️</div>
+                                </div>
+                                <div class="grid grid-cols-2 text-sm">
+                                    <div>Humidity: <span id="humidity">--%</span></div>
+                                    <div>Wind: <span id="windSpeed">-- km/h</span></div>
+                                    <div>Rainfall: <span id="rainfall">-- mm</span></div>
+                                    <div>Pressure: <span id="pressure">-- hPa</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="mt-6">
+                    <h3 class="font-semibold mb-4">Recent Community Reports</h3>
+                    <div class="grid grid-cols-1 gap-3" id="communityReports">
+                        <!-- Community reports will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Tab -->
+            <div id="map-tab" class="tab-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="font-semibold">Interactive Area Map</h3>
+                        <p class="text-sm text-secondary">View drainage infrastructure and alert locations</p>
+                    </div>
+                    <div class="card-body">
+                        <div id="map"></div>
+                        <div class="mt-4 flex justify-center space-x-4 text-sm">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                                <span>Normal</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                                <span>Warning</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                                <span>Critical</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                                <span>Your Location</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Tab -->
+            <div id="report-tab" class="tab-content hidden">
+                <div class="card mx-auto report-form">
+                    <div class="card-header">
+                        <h3 class="font-semibold">Report Drainage Issue</h3>
+                        <p class="text-sm text-secondary">Help us identify problems before they become emergencies</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="reportForm">
+                            <div class="form-group">
+                                <label class="form-label">Issue Type</label>
+                                <select name="reportType" class="form-select" required>
+                                    <option value="">Select issue type</option>
+                                    <option value="drainage_blockage">Drainage Blockage</option>
+                                    <option value="flooding">Flooding</option>
+                                    <option value="overflow">Overflow</option>
+                                    <option value="broken_infrastructure">Broken Infrastructure</option>
+                                    <option value="maintenance_needed">Maintenance Needed</option>
+                                    <option value="debris_accumulation">Debris Accumulation</option>
+                                    <option value="unusual_water_flow">Unusual Water Flow</option>
+                                    <option value="emergency">Emergency</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Severity Level</label>
+                                <select name="severity" class="form-select" required>
+                                    <option value="">Select severity</option>
+                                    <option value="low">Low - Minor issue</option>
+                                    <option value="medium">Medium - Requires attention</option>
+                                    <option value="high">High - Urgent</option>
+                                    <option value="emergency">Emergency - Immediate action needed</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Title</label>
+                                <input type="text" name="title" class="form-input" placeholder="Brief description of the issue" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Detailed Description</label>
+                                <textarea name="description" class="form-textarea" placeholder="Provide detailed information about what you observed..." required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Location</label>
+                                <input type="text" name="address" class="form-input" placeholder="Street address or landmark" required>
+                                <div class="mt-2">
+                                    <button type="button" id="useCurrentLocation" class="btn btn-secondary btn-sm">
+                                        📍 Use Current Location
+                                    </button>
+                                </div>
+                                <input type="hidden" name="latitude" id="reportLatitude">
+                                <input type="hidden" name="longitude" id="reportLongitude">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Photos/Videos (Optional)</label>
+                                <div class="file-upload" id="fileUploadArea">
+                                    <div class="text-4xl mb-2">📸</div>
+                                    <p>Click to upload or drag and drop</p>
+                                    <p class="text-sm text-secondary">Images and videos help us assess the situation</p>
+                                    <input type="file" id="fileInput" name="media" multiple accept="image/*,video/*" style="display: none;">
+                                </div>
+                                <div id="filePreview" class="mt-4 hidden">
+                                    <!-- File previews will be shown here -->
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Contact Information (Optional)</label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="tel" name="phone" class="form-input" placeholder="Phone number">
+                                    <input type="email" name="email" class="form-input" placeholder="Email address">
+                                </div>
+                                <div class="mt-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="allowPublicContact" class="mr-2">
+                                        <span class="text-sm">Allow community members to contact me about this issue</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                    Clear Form
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    Submit Report
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Info Tab -->
+            <div id="emergency-tab" class="tab-content hidden">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Emergency Contacts</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold">Emergency Services</div>
+                                        <div class="text-sm text-secondary">Fire, Police, Ambulance</div>
+                                    </div>
+                                    <a href="tel:911" class="btn btn-danger btn-sm">911</a>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold">Flood Emergency Hotline</div>
+                                        <div class="text-sm text-secondary">24/7 Flood Response</div>
+                                    </div>
+                                    <a href="tel:1800FLOOD" class="btn btn-warning btn-sm">1-800-FLOOD</a>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold">Municipal Operations</div>
+                                        <div class="text-sm text-secondary">Infrastructure Issues</div>
+                                    </div>
+                                    <a href="tel:311" class="btn btn-secondary btn-sm">311</a>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold">HydroNexus Support</div>
+                                        <div class="text-sm text-secondary">Technical Support</div>
+                                    </div>
+                                    <a href="tel:+1234567890" class="btn btn-primary btn-sm">Support</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Safety Guidelines</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="space-y-3">
+                                <div class="alert alert-info">
+                                    <strong>During Flooding:</strong><br>
+                                    • Never drive through flooded roads<br>
+                                    • Stay on higher ground<br>
+                                    • Avoid contact with floodwater<br>
+                                    • Listen to emergency broadcasts
+                                </div>
+                                <div class="alert alert-warning">
+                                    <strong>Evacuation Ready:</strong><br>
+                                    • Keep emergency kit prepared<br>
+                                    • Know your evacuation routes<br>
+                                    • Have important documents ready<br>
+                                    • Stay connected with family
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Evacuation Centers</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid grid-cols-3 gap-4" id="evacuationCenters">
+                                <!-- Evacuation centers will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Action Buttons -->
+    <div class="floating-actions">
+        <button class="fab btn-danger" onclick="callEmergency()" title="Call Emergency">
+            🚨
+        </button>
+        <button class="fab btn-primary" onclick="quickReport()" title="Quick Report">
+            📝
+        </button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/citizen.js"></script>
+</body>
+</html>
