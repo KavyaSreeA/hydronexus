@@ -453,28 +453,241 @@ a:hover {
 .block { display: block; }
 .inline-block { display: inline-block; }
 
-/* Responsive Design */
+/* ===== MOBILE HAMBURGER MENU ===== */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px;
+  z-index: 60;
+}
+
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2.5px;
+  background: var(--gray-700);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-overlay.active {
+  opacity: 1;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablet: 769px - 1024px */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 var(--space-md);
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile: 768px and below */
 @media (max-width: 768px) {
   .container {
     padding: 0 var(--space-md);
   }
   
-  h1 { font-size: 2rem; }
-  h2 { font-size: 1.75rem; }
-  h3 { font-size: 1.25rem; }
-  
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.2rem; }
+
+  /* Mobile Nav */
+  .hamburger {
+    display: flex;
+  }
+
+  .navbar .container {
+    position: relative;
+  }
+
+  .navbar-nav {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 280px;
+    height: 100vh;
+    background: var(--white);
+    flex-direction: column;
+    padding: 5rem var(--space-lg) var(--space-lg);
+    gap: var(--space-sm);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    z-index: 50;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+
+  .navbar-nav.open {
+    display: flex;
+    transform: translateX(0);
+  }
+
+  .navbar-nav li {
+    width: 100%;
+  }
+
+  .nav-link {
+    display: block;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+  }
+
+  .navbar-nav .btn {
+    width: 100%;
+    text-align: center;
+    margin-top: var(--space-sm);
+  }
+
+  .mobile-overlay.active {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Grid: stack everything on mobile */
   .grid-cols-2,
   .grid-cols-3,
   .grid-cols-4 {
     grid-template-columns: 1fr;
   }
-  
-  .navbar-nav {
-    gap: var(--space-md);
+
+  /* Hero section */
+  .py-8 {
+    padding: var(--space-xl) 0;
   }
-  
-  .btn {
-    padding: var(--space-md) var(--space-lg);
+
+  .text-6xl { font-size: 3rem; }
+  .text-4xl { font-size: 2rem; }
+  .text-3xl { font-size: 1.5rem; }
+  .text-2xl { font-size: 1.25rem; }
+
+  /* Buttons wrap */
+  .flex.gap-4 {
+    flex-wrap: wrap;
+  }
+
+  .btn-lg {
+    padding: var(--space-sm) var(--space-lg);
+    font-size: 0.875rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Cards full width */
+  .card {
+    width: 100%;
+  }
+
+  /* Tables scroll horizontally */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Footer grid */
+  .bg-gray-800 .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+  }
+
+  /* Tabs wrap */
+  .nav-tab {
+    font-size: 0.8rem;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  /* Flex items wrap on mobile */
+  .flex.justify-between {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .flex.space-x-4 {
+    flex-wrap: wrap;
+  }
+
+  /* Form selects side by side */
+  .form-select {
+    min-width: 0;
+    font-size: 0.8rem;
+  }
+}
+
+/* Small phones: 480px and below */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 var(--space-sm);
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+
+  .bg-gray-800 .grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-lg {
+    font-size: 0.8rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  .floating-actions {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .fab {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
   }
 }
 

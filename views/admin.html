@@ -179,11 +179,55 @@
             .sidebar {
                 transform: translateX(-100%);
             }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
             .main-content {
                 margin-left: 0;
             }
             .grid-cols-4 {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            .admin-header {
+                padding: 0.75rem 1rem;
+            }
+            .section-content {
+                padding: 1rem !important;
+            }
+            .stats-card {
+                padding: 1rem !important;
+            }
+            .stats-card .text-3xl,
+            .stats-card .text-2xl {
+                font-size: 1.25rem;
+            }
+            .chart-container {
+                height: 220px;
+            }
+            #adminMap {
+                height: 300px;
+            }
+            .data-table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .flex.space-x-4,
+            .flex.space-x-2 {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .modal-content {
+                width: 95vw;
+                margin: 1rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .grid-cols-4 {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -250,7 +294,7 @@
         <div class="admin-header">
             <div class="flex justify-between items-center">
                 <div class="flex items-center">
-                    <button onclick="toggleSidebar()" class="btn btn-secondary btn-sm mr-4 md:hidden">
+                    <button onclick="toggleSidebar()" class="btn btn-secondary btn-sm mr-4" id="sidebarToggle">
                         <i data-feather="menu"></i>
                     </button>
                     <h1 class="text-xl font-semibold" id="pageTitle">System Overview</h1>

@@ -91,6 +91,24 @@
             border-color: var(--primary-blue);
             background-color: var(--gray-100);
         }
+
+        /* Responsive citizen page */
+        @media (max-width: 768px) {
+            .nav-tab {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.6rem;
+            }
+            .flex.space-x-4 {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .report-form {
+                max-width: 100%;
+            }
+            #map {
+                height: 280px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -98,7 +116,10 @@
     <nav class="navbar">
         <div class="container flex items-center justify-between py-4">
             <a href="/" class="navbar-brand">🌊 HydroNexus</a>
-            <ul class="navbar-nav">
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="navbar-nav" id="navMenu">
                 <li><a href="/citizen" class="nav-link active">Citizen Portal</a></li>
                 <li><a href="/monitoring" class="nav-link">Live Status</a></li>
                 <li><a href="/" class="nav-link">Home</a></li>
@@ -106,6 +127,7 @@
             </ul>
         </div>
     </nav>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <!-- Emergency Banner (shown only when there are critical alerts) -->
     <div id="emergencyBanner" class="emergency-banner py-3 text-center hidden">
@@ -454,6 +476,25 @@
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="/js/main.js"></script>
+    <script>
+        // Mobile nav toggle
+        (function() {
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('navMenu');
+            const overlay = document.getElementById('mobileOverlay');
+            function toggleMenu() {
+                hamburger.classList.toggle('active');
+                navMenu.classList.toggle('open');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = navMenu.classList.contains('open') ? 'hidden' : '';
+            }
+            hamburger.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+            navMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+                if (navMenu.classList.contains('open')) toggleMenu();
+            }));
+        })();
+    </script>
     <script src="/js/citizen.js"></script>
 </body>
 </html>
