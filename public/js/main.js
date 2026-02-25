@@ -111,48 +111,55 @@ HydroNexus.api = {
     }
 };
 
-// Notification system
+// Toast notification system (modern)
 HydroNexus.showNotification = function(message, type = 'info', duration = 5000) {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        min-width: 300px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        animation: slideIn 0.3s ease-out;
-    `;
-
-    // Add close button
-    const closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '×';
-    closeBtn.style.cssText = `
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        float: right;
-        margin-left: 10px;
-    `;
-    closeBtn.onclick = () => notification.remove();
-    notification.appendChild(closeBtn);
-
-    document.body.appendChild(notification);
-
-    // Auto remove after duration
-    if (duration > 0) {
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.style.animation = 'slideOut 0.3s ease-in';
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, duration);
+    // Ensure toast container exists
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        container.id = 'toastContainer';
+        document.body.appendChild(container);
     }
 
-    return notification;
+    const iconMap = {
+        success: '✓', danger: '✕', warning: '⚠', info: 'ℹ', error: '✕'
+    };
+    const titleMap = {
+        success: 'Success', danger: 'Error', warning: 'Warning', info: 'Info', error: 'Error'
+    };
+    const mappedType = type === 'error' ? 'danger' : type;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${mappedType}`;
+    toast.innerHTML = `
+        <div class="toast-icon">${iconMap[type] || 'ℹ'}</div>
+        <div class="toast-body">
+            <div class="toast-title">${titleMap[type] || 'Notification'}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" aria-label="Close">&times;</button>
+    `;
+
+    toast.querySelector('.toast-close').addEventListener('click', () => removeToast(toast));
+    container.appendChild(toast);
+
+    // Limit toasts to 5
+    const toasts = container.querySelectorAll('.toast:not(.removing)');
+    if (toasts.length > 5) removeToast(toasts[0]);
+
+    // Auto remove
+    if (duration > 0) {
+        setTimeout(() => removeToast(toast), duration);
+    }
+
+    function removeToast(el) {
+        if (!el || el.classList.contains('removing')) return;
+        el.classList.add('removing');
+        setTimeout(() => el.remove(), 300);
+    }
+
+    return toast;
 };
 
 // Handle new alerts

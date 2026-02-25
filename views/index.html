@@ -3,114 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HydroNexus - Smart Flood Prediction & Drainage Monitoring</title>
-    <meta name="description" content="HydroNexus provides real-time flood prediction and drainage monitoring to prevent urban flooding through smart infrastructure management.">
+    <title>HydroNexus — Smart Flood Prediction & Drainage Monitoring</title>
+    <meta name="description" content="Real-time flood prediction and drainage monitoring to prevent urban flooding through smart infrastructure management.">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Styles -->
     <link rel="stylesheet" href="/css/main.css">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+
+    <style>
+        /* ===== Hero ===== */
+        .hero {
+            background: linear-gradient(135deg, #172554 0%, #1e3a8a 40%, #1d4ed8 100%);
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+        .hero-glow {
+            position: absolute;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(96,165,250,0.25) 0%, transparent 70%);
+            top: -150px; right: -100px;
+            pointer-events: none;
+        }
+        .hero-content { position: relative; z-index: 1; }
+
+        /* Animated counter */
+        .counter-value {
+            font-variant-numeric: tabular-nums;
+            transition: all 0.4s var(--ease-out);
+        }
+
+        /* Trusted bar */
+        .trusted-bar {
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .trusted-logos {
+            display: flex; align-items: center; justify-content: center;
+            gap: var(--sp-10); flex-wrap: wrap;
+            opacity: 0.5;
+        }
+        .trusted-logos span {
+            font-size: 0.875rem; font-weight: 600;
+            color: var(--gray-500); letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        /* CTA section */
+        .cta-section {
+            background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+            position: relative; overflow: hidden;
+        }
+        .cta-section::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="container flex items-center justify-between py-4">
+    <!-- ===== NAVIGATION ===== -->
+    <nav class="navbar" id="mainNav">
+        <div class="container flex items-center justify-between" style="padding-top:0.875rem;padding-bottom:0.875rem;">
             <a href="/" class="navbar-brand">
-                🌊 HydroNexus
+                <span class="brand-icon">🌊</span>
+                HydroNexus
             </a>
-            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+            <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
                 <span></span><span></span><span></span>
             </button>
             <ul class="navbar-nav" id="navMenu">
                 <li><a href="#features" class="nav-link">Features</a></li>
-                <li><a href="#monitoring" class="nav-link">Monitoring</a></li>
-                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#status" class="nav-link">Live Status</a></li>
                 <li><a href="/citizen" class="nav-link">For Citizens</a></li>
-                <li><a href="/admin" class="nav-link">Admin Portal</a></li>
-                <li><a href="/login" class="btn btn-primary btn-sm">Login</a></li>
+                <li><a href="/monitoring" class="nav-link">Monitoring</a></li>
+                <li><a href="/login" class="btn btn-primary btn-sm" style="margin-left:0.5rem;">Sign In</a></li>
             </ul>
         </div>
     </nav>
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <!-- Hero Section -->
-    <section class="bg-gray-50 py-8">
-        <div class="container">
-            <div class="grid grid-cols-2 items-center">
-                <div class="py-8">
-                    <h1 class="text-2xl font-bold mb-4">
-                        Smart Flood Prediction & 
-                        <span class="text-primary">Drainage Monitoring</span>
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-content container" style="padding-top:5rem;padding-bottom:5rem;">
+            <div class="grid grid-cols-2 items-center" style="gap:3rem;">
+                <!-- Left: Copy -->
+                <div>
+                    <span class="risk-badge risk-low mb-4" style="display:inline-flex;">System Operational</span>
+                    <h1 class="text-display mb-6" style="color:#fff;">
+                        Predict Floods.<br>
+                        Protect Communities.
                     </h1>
-                    <p class="text-lg text-secondary mb-6">
-                        HydroNexus provides real-time alerts and helps authorities detect blockage-prone areas 
-                        to prevent urban flooding. Transform reactive disaster relief into cost-effective, 
-                        preventative maintenance.
+                    <p class="text-lg mb-8" style="color:rgba(255,255,255,0.78);max-width:520px;line-height:1.7;">
+                        HydroNexus monitors urban drainage in real time, predicts flood risks with smart analytics, and empowers both citizens and authorities to act before disaster strikes.
                     </p>
-                    <div class="flex gap-4">
-                        <a href="/citizen" class="btn btn-primary btn-lg">
-                            🚨 Citizen Alerts
+                    <div class="flex gap-4 flex-wrap">
+                        <a href="/citizen" class="btn btn-white btn-xl">
+                            Get Flood Alerts
                         </a>
-                        <a href="/admin" class="btn btn-secondary btn-lg">
-                            🏛️ Admin Dashboard
+                        <a href="/login" class="btn btn-xl" style="background:rgba(255,255,255,0.12);color:#fff;border:1.5px solid rgba(255,255,255,0.25);">
+                            Admin Dashboard →
                         </a>
                     </div>
                 </div>
-                <div class="py-8 text-center">
-                    <div class="card p-6">
-                        <div class="text-6xl mb-4">🏙️</div>
-                        <h3 class="text-xl font-semibold mb-2">Real-time Monitoring</h3>
-                        <p class="text-secondary">Advanced sensor networks monitoring drainage infrastructure across the city</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Live Status Section -->
-    <section class="py-8">
-        <div class="container">
-            <h2 class="text-center mb-6">System Status Overview</h2>
-            <div class="grid grid-cols-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <div class="text-3xl mb-2">📊</div>
-                        <h4 class="font-semibold">Active Nodes</h4>
-                        <p class="text-2xl font-bold text-primary" id="activeNodes">--</p>
-                        <p class="text-sm text-secondary">Monitoring Points</p>
-                    </div>
-                </div>
-                <div class="card text-center">
-                    <div class="card-body">
-                        <div class="text-3xl mb-2">🚨</div>
-                        <h4 class="font-semibold">Active Alerts</h4>
-                        <p class="text-2xl font-bold text-warning" id="activeAlerts">--</p>
-                        <p class="text-sm text-secondary">Current Warnings</p>
-                    </div>
-                </div>
-                <div class="card text-center">
-                    <div class="card-body">
-                        <div class="text-3xl mb-2">💧</div>
-                        <h4 class="font-semibold">Water Level</h4>
-                        <p class="text-2xl font-bold text-success" id="avgWaterLevel">--</p>
-                        <p class="text-sm text-secondary">Average %</p>
-                    </div>
-                </div>
-                <div class="card text-center">
-                    <div class="card-body">
-                        <div class="text-3xl mb-2">⚡</div>
-                        <h4 class="font-semibold">System Health</h4>
-                        <div class="status status-normal mt-2" id="systemHealth">
-                            <span>Normal</span>
+                <!-- Right: Live stats card -->
+                <div style="display:flex;justify-content:center;">
+                    <div class="card" style="width:100%;max-width:400px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);">
+                        <div class="card-body" style="padding:2rem;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.5rem;">
+                                <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;"></span>
+                                <span style="font-size:0.8125rem;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.05em;">Live System Dashboard</span>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+                                <div>
+                                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-bottom:0.25rem;font-weight:500;">Active Nodes</div>
+                                    <div style="font-size:1.75rem;font-weight:800;color:#fff;" id="heroNodes" class="counter-value">—</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-bottom:0.25rem;font-weight:500;">Active Alerts</div>
+                                    <div style="font-size:1.75rem;font-weight:800;color:#fbbf24;" id="heroAlerts" class="counter-value">—</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-bottom:0.25rem;font-weight:500;">Avg Water Level</div>
+                                    <div style="font-size:1.75rem;font-weight:800;color:#22d3ee;" id="heroWater" class="counter-value">—</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-bottom:0.25rem;font-weight:500;">System Health</div>
+                                    <div id="heroHealth"><span class="status status-normal" style="margin-top:0.25rem;">Normal</span></div>
+                                </div>
+                            </div>
+                            <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:space-between;">
+                                <span style="font-size:0.75rem;color:rgba(255,255,255,0.4);">Auto-refreshes every 30s</span>
+                                <span class="risk-badge risk-low" style="font-size:0.65rem;" id="riskBadge">Low Risk</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -118,153 +160,196 @@
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="bg-gray-50 py-8">
+    <!-- ===== TRUSTED BAR ===== -->
+    <section class="trusted-bar" style="padding:1.25rem 0;">
+        <div class="container">
+            <div class="trusted-logos">
+                <span>🏛️ Municipal Corp</span>
+                <span>🌧️ Weather Bureau</span>
+                <span>🛡️ Disaster Mgmt</span>
+                <span>📊 IoT Networks</span>
+                <span>🏗️ Smart Cities</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== STAT CARDS ===== -->
+    <section id="status" class="section" style="background:var(--gray-50);">
         <div class="container">
             <div class="text-center mb-8">
-                <h2 class="text-xl font-bold mb-4">Comprehensive Flood Prevention</h2>
-                <p class="text-lg text-secondary">
-                    Advanced monitoring and predictive analytics for urban drainage infrastructure
+                <div class="section-divider"></div>
+                <h2>System Status at a Glance</h2>
+                <p class="text-lg text-secondary" style="max-width:560px;margin:0 auto;">Real-time data from our sensor network, updated every 30 seconds.</p>
+            </div>
+            <div class="grid grid-cols-4" style="gap:1.25rem;">
+                <div class="stat-card stat-blue" id="statNodes">
+                    <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                    <div class="stat-label">Active Nodes</div>
+                    <div class="stat-value" id="activeNodes">—</div>
+                    <div class="text-sm text-secondary" style="margin-top:0.25rem;">Monitoring points online</div>
+                </div>
+                <div class="stat-card stat-orange" id="statAlerts">
+                    <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                    <div class="stat-label">Active Alerts</div>
+                    <div class="stat-value" id="activeAlerts">—</div>
+                    <div class="text-sm text-secondary" style="margin-top:0.25rem;">Requiring attention</div>
+                </div>
+                <div class="stat-card stat-green" id="statWater">
+                    <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
+                    <div class="stat-label">Water Level</div>
+                    <div class="stat-value" id="avgWaterLevel">—</div>
+                    <div class="text-sm text-secondary" style="margin-top:0.25rem;">Average capacity</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid var(--accent-500);">
+                    <div class="stat-icon" style="background:var(--accent-50);color:var(--accent-600);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                    <div class="stat-label">System Health</div>
+                    <div id="systemHealth" style="margin-top:0.5rem;">
+                        <span class="status status-normal">Normal</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <section id="features" class="section">
+        <div class="container">
+            <div class="text-center mb-8">
+                <div class="section-divider"></div>
+                <h2>Everything You Need for Flood Prevention</h2>
+                <p class="text-lg text-secondary" style="max-width:590px;margin:0 auto;">
+                    From real-time monitoring to predictive analytics — a complete platform for urban resilience.
                 </p>
             </div>
             
-            <div class="grid grid-cols-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <div class="text-4xl mb-4">🌊</div>
-                        <h4 class="font-semibold mb-2">Real-time Monitoring</h4>
-                        <p class="text-secondary">
-                            Continuous monitoring of drainage nodes with advanced sensors detecting 
-                            water levels, blockages, and flow rates.
-                        </p>
+            <div class="grid grid-cols-3" style="gap:1.5rem;">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background:var(--primary-50);color:var(--primary-600);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                     </div>
+                    <h4>Real-time Monitoring</h4>
+                    <p>Continuous sensor data on water levels, blockages, and flow rates across the drainage network.</p>
                 </div>
                 
-                <div class="card">
-                    <div class="card-body text-center">
-                        <div class="text-4xl mb-4">📱</div>
-                        <h4 class="font-semibold mb-2">Dual Interface System</h4>
-                        <p class="text-secondary">
-                            Separate interfaces for citizens to receive alerts and report issues, 
-                            and administrators to manage infrastructure.
-                        </p>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background:var(--accent-50);color:var(--accent-600);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                     </div>
+                    <h4>Dual-Interface System</h4>
+                    <p>Separate portals for citizens to get alerts and report issues, and admins to manage infrastructure.</p>
                 </div>
                 
-                <div class="card">
-                    <div class="card-body text-center">
-                        <div class="text-4xl mb-4">🔧</div>
-                        <h4 class="font-semibold mb-2">Preventive Maintenance</h4>
-                        <p class="text-secondary">
-                            Transition from reactive disaster relief to cost-effective preventive 
-                            maintenance through early detection.
-                        </p>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background:var(--success-50);color:var(--success-600);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                     </div>
+                    <h4>Preventive Maintenance</h4>
+                    <p>Shift from reactive disaster relief to cost-effective early detection and scheduled upkeep.</p>
                 </div>
                 
-                <div class="card">
-                    <div class="card-body text-center">
-                        <div class="text-4xl mb-4">📈</div>
-                        <h4 class="font-semibold mb-2">Predictive Analytics</h4>
-                        <p class="text-secondary">
-                            Advanced algorithms analyze historical data and current conditions 
-                            to predict potential flooding events.
-                        </p>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background:var(--warning-50);color:var(--warning-600);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                     </div>
+                    <h4>Predictive Analytics</h4>
+                    <p>Algorithms analyze historical data and weather patterns to forecast potential flooding events.</p>
                 </div>
                 
-                <div class="card">
-                    <div class="card-body text-center">
-                        <div class="text-4xl mb-4">🚨</div>
-                        <h4 class="font-semibold mb-2">Smart Alerts</h4>
-                        <p class="text-secondary">
-                            Automated alert system with severity levels, targeted notifications, 
-                            and emergency response coordination.
-                        </p>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background:var(--danger-50);color:var(--danger-600);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     </div>
+                    <h4>Smart Alert System</h4>
+                    <p>Multi-level severity alerts with targeted notifications and emergency response coordination.</p>
                 </div>
                 
-                <div class="card">
-                    <div class="card-body text-center">
-                        <div class="text-4xl mb-4">🗺️</div>
-                        <h4 class="font-semibold mb-2">Geographic Mapping</h4>
-                        <p class="text-secondary">
-                            Interactive maps showing drainage infrastructure, risk zones, 
-                            and real-time status of monitoring points.
-                        </p>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background:var(--primary-50);color:var(--primary-600);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
                     </div>
+                    <h4>Geographic Mapping</h4>
+                    <p>Interactive maps showing drainage infrastructure, risk zones, and real-time node statuses.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Recent Alerts Section -->
-    <section class="py-8">
+    <!-- ===== ACTIVITY ===== -->
+    <section class="section" style="background:var(--gray-50);">
         <div class="container">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="font-bold">Recent System Activity</h2>
-                <a href="/monitoring" class="btn btn-secondary btn-sm">View All Activity</a>
+            <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                <div>
+                    <h2 class="mb-1">Recent System Activity</h2>
+                    <p class="text-secondary" style="margin-bottom:0;">Live alerts and citizen reports from the last 24 hours.</p>
+                </div>
+                <a href="/monitoring" class="btn btn-secondary">View Monitoring →</a>
             </div>
             
-            <div class="grid grid-cols-2">
+            <div class="grid grid-cols-2" style="gap:1.5rem;">
+                <!-- Current Alerts -->
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="font-semibold">Current Alerts</h4>
+                        <h4 style="font-size:0.9375rem;font-weight:600;margin-bottom:0;">Current Alerts</h4>
+                        <span class="risk-badge risk-medium" style="font-size:0.65rem;">2 Active</span>
                     </div>
-                    <div class="card-body">
-                        <div id="recentAlerts">
-                            <div class="flex justify-between items-center mb-3">
-                                <div>
-                                    <div class="font-semibold">Park Avenue Catch Basin</div>
-                                    <div class="text-sm text-secondary">High water level detected</div>
-                                </div>
-                                <span class="status status-warning">Warning</span>
+                    <div class="card-body" style="padding:0;" id="recentAlerts">
+                        <div class="activity-item" style="padding-left:1.5rem;padding-right:1.5rem;">
+                            <div class="activity-icon" style="background:var(--warning-50);color:var(--warning-600);">⚠️</div>
+                            <div class="activity-body">
+                                <div class="activity-title">Park Avenue Catch Basin</div>
+                                <div class="activity-desc">High water level detected</div>
                             </div>
-                            <div class="flex justify-between items-center mb-3">
-                                <div>
-                                    <div class="font-semibold">Industrial Zone Pump Station</div>
-                                    <div class="text-sm text-secondary">Critical blockage level</div>
-                                </div>
-                                <span class="status status-critical">Critical</span>
+                            <span class="status status-warning" style="font-size:0.65rem;">Warning</span>
+                        </div>
+                        <div class="activity-item" style="padding-left:1.5rem;padding-right:1.5rem;">
+                            <div class="activity-icon" style="background:var(--danger-50);color:var(--danger-600);">🚨</div>
+                            <div class="activity-body">
+                                <div class="activity-title">Industrial Zone Pump Station</div>
+                                <div class="activity-desc">Critical blockage level</div>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="font-semibold">Main Street Storm Drain</div>
-                                    <div class="text-sm text-secondary">Normal operation</div>
-                                </div>
-                                <span class="status status-normal">Normal</span>
+                            <span class="status status-critical" style="font-size:0.65rem;">Critical</span>
+                        </div>
+                        <div class="activity-item" style="padding-left:1.5rem;padding-right:1.5rem;">
+                            <div class="activity-icon" style="background:var(--success-50);color:var(--success-600);">✅</div>
+                            <div class="activity-body">
+                                <div class="activity-title">Main Street Storm Drain</div>
+                                <div class="activity-desc">Normal operation</div>
                             </div>
+                            <span class="status status-normal" style="font-size:0.65rem;">Normal</span>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Citizen Reports -->
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="font-semibold">Citizen Reports</h4>
+                        <h4 style="font-size:0.9375rem;font-weight:600;margin-bottom:0;">Citizen Reports</h4>
+                        <span class="risk-badge risk-low" style="font-size:0.65rem;">3 Recent</span>
                     </div>
-                    <div class="card-body">
-                        <div id="recentReports">
-                            <div class="flex justify-between items-center mb-3">
-                                <div>
-                                    <div class="font-semibold">Drainage blockage reported</div>
-                                    <div class="text-sm text-secondary">Central Ward - 2 hours ago</div>
-                                </div>
-                                <span class="status status-warning">Investigating</span>
+                    <div class="card-body" style="padding:0;" id="recentReports">
+                        <div class="activity-item" style="padding-left:1.5rem;padding-right:1.5rem;">
+                            <div class="activity-icon" style="background:var(--warning-50);color:var(--warning-600);">📋</div>
+                            <div class="activity-body">
+                                <div class="activity-title">Drainage blockage reported</div>
+                                <div class="activity-desc">Central Ward · 2 hours ago</div>
                             </div>
-                            <div class="flex justify-between items-center mb-3">
-                                <div>
-                                    <div class="font-semibold">Minor flood concern</div>
-                                    <div class="text-sm text-secondary">East Delhi - 4 hours ago</div>
-                                </div>
-                                <span class="status status-normal">Resolved</span>
+                            <span class="status status-warning" style="font-size:0.65rem;">Investigating</span>
+                        </div>
+                        <div class="activity-item" style="padding-left:1.5rem;padding-right:1.5rem;">
+                            <div class="activity-icon" style="background:var(--success-50);color:var(--success-600);">✅</div>
+                            <div class="activity-body">
+                                <div class="activity-title">Minor flood concern</div>
+                                <div class="activity-desc">East Delhi · 4 hours ago</div>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="font-semibold">Maintenance request</div>
-                                    <div class="text-sm text-secondary">Industrial Zone - 6 hours ago</div>
-                                </div>
-                                <span class="status status-warning">Scheduled</span>
+                            <span class="status status-normal" style="font-size:0.65rem;">Resolved</span>
+                        </div>
+                        <div class="activity-item" style="padding-left:1.5rem;padding-right:1.5rem;">
+                            <div class="activity-icon" style="background:var(--primary-50);color:var(--primary-600);">🔧</div>
+                            <div class="activity-body">
+                                <div class="activity-title">Maintenance request</div>
+                                <div class="activity-desc">Industrial Zone · 6 hours ago</div>
                             </div>
+                            <span class="status status-warning" style="font-size:0.65rem;">Scheduled</span>
                         </div>
                     </div>
                 </div>
@@ -272,72 +357,146 @@
         </div>
     </section>
 
-    <!-- Call to Action Section -->
-    <section id="about" class="bg-primary py-8">
-        <div class="container text-center">
-            <h2 class="text-xl font-bold mb-4" style="color: white;">
+    <!-- ===== FOR CITIZENS / ADMINS ===== -->
+    <section class="section">
+        <div class="container">
+            <div class="text-center mb-8">
+                <div class="section-divider"></div>
+                <h2>Built for Everyone in the Chain</h2>
+                <p class="text-lg text-secondary" style="max-width:520px;margin:0 auto;">
+                    Whether you're a citizen or an administrator — HydroNexus has you covered.
+                </p>
+            </div>
+            <div class="grid grid-cols-2" style="gap:2rem;">
+                <!-- Citizens -->
+                <div class="card card-interactive" style="border-top:4px solid var(--accent-500);">
+                    <div class="card-body" style="padding:2.5rem;">
+                        <div style="width:56px;height:56px;border-radius:var(--radius-xl);background:var(--accent-50);color:var(--accent-600);display:flex;align-items:center;justify-content:center;font-size:1.75rem;margin-bottom:1.5rem;">🛡️</div>
+                        <h3 style="margin-bottom:0.75rem;">For Citizens</h3>
+                        <p class="text-secondary" style="margin-bottom:1.5rem;line-height:1.7;">
+                            Get real-time flood alerts for your area, view interactive maps, report drainage issues, and access emergency info — all from one portal.
+                        </p>
+                        <ul style="list-style:none;padding:0;margin-bottom:2rem;" class="space-y-3">
+                            <li style="display:flex;align-items:center;gap:0.75rem;font-size:0.9375rem;color:var(--gray-700);">
+                                <span style="width:24px;height:24px;border-radius:50%;background:var(--success-50);color:var(--success-600);display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;">✓</span>
+                                Real-time flood alerts & warnings
+                            </li>
+                            <li style="display:flex;align-items:center;gap:0.75rem;font-size:0.9375rem;color:var(--gray-700);">
+                                <span style="width:24px;height:24px;border-radius:50%;background:var(--success-50);color:var(--success-600);display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;">✓</span>
+                                Report drainage issues with photos
+                            </li>
+                            <li style="display:flex;align-items:center;gap:0.75rem;font-size:0.9375rem;color:var(--gray-700);">
+                                <span style="width:24px;height:24px;border-radius:50%;background:var(--success-50);color:var(--success-600);display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;">✓</span>
+                                Interactive area maps & evacuation info
+                            </li>
+                        </ul>
+                        <a href="/citizen" class="btn btn-primary btn-lg w-full">Open Citizen Portal</a>
+                    </div>
+                </div>
+                <!-- Admins -->
+                <div class="card card-interactive" style="border-top:4px solid var(--primary-600);">
+                    <div class="card-body" style="padding:2.5rem;">
+                        <div style="width:56px;height:56px;border-radius:var(--radius-xl);background:var(--primary-50);color:var(--primary-600);display:flex;align-items:center;justify-content:center;font-size:1.75rem;margin-bottom:1.5rem;">📊</div>
+                        <h3 style="margin-bottom:0.75rem;">For Administrators</h3>
+                        <p class="text-secondary" style="margin-bottom:1.5rem;line-height:1.7;">
+                            Full dashboard with node management, analytics, citizen reports, alert control and maintenance scheduling.
+                        </p>
+                        <ul style="list-style:none;padding:0;margin-bottom:2rem;" class="space-y-3">
+                            <li style="display:flex;align-items:center;gap:0.75rem;font-size:0.9375rem;color:var(--gray-700);">
+                                <span style="width:24px;height:24px;border-radius:50%;background:var(--success-50);color:var(--success-600);display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;">✓</span>
+                                Complete node & infrastructure mgmt
+                            </li>
+                            <li style="display:flex;align-items:center;gap:0.75rem;font-size:0.9375rem;color:var(--gray-700);">
+                                <span style="width:24px;height:24px;border-radius:50%;background:var(--success-50);color:var(--success-600);display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;">✓</span>
+                                Charts, analytics & trend forecasting
+                            </li>
+                            <li style="display:flex;align-items:center;gap:0.75rem;font-size:0.9375rem;color:var(--gray-700);">
+                                <span style="width:24px;height:24px;border-radius:50%;background:var(--success-50);color:var(--success-600);display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;">✓</span>
+                                Alert creation & bulk notifications
+                            </li>
+                        </ul>
+                        <a href="/login" class="btn btn-secondary btn-lg w-full">Sign In to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CTA ===== -->
+    <section class="cta-section" style="padding:5rem 0;position:relative;">
+        <div class="container text-center" style="position:relative;z-index:1;">
+            <h2 class="text-display" style="color:#fff;font-size:clamp(1.75rem,4vw,2.75rem);margin-bottom:1.25rem;">
                 Building Resilient Urban Communities
             </h2>
-            <p class="text-lg mb-6" style="color: rgba(255,255,255,0.9);">
-                HydroNexus helps cities transition from reactive disaster management to proactive 
-                infrastructure monitoring, ensuring regional rural-urban hubs are resilient against flooding.
+            <p class="text-lg" style="color:rgba(255,255,255,0.78);max-width:600px;margin:0 auto 2rem;">
+                Join cities worldwide transitioning from reactive disaster management to proactive, data-driven infrastructure monitoring.
             </p>
-            <div class="flex justify-center gap-4">
-                <a href="/citizen" class="btn" style="background-color: white; color: var(--primary-blue);">
-                    Get Alerts & Report Issues
-                </a>
-                <a href="/admin" class="btn btn-secondary">
-                    Administrative Access
+            <div class="flex justify-center gap-4 flex-wrap">
+                <a href="/citizen" class="btn btn-white btn-xl">Get Started Free — Citizen Alerts</a>
+                <a href="/monitoring" class="btn btn-xl" style="background:rgba(255,255,255,0.12);color:#fff;border:1.5px solid rgba(255,255,255,0.25);">
+                    View Live Monitoring
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 py-6">
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer">
         <div class="container">
-            <div class="grid grid-cols-4">
+            <div class="grid grid-cols-4" style="gap:2.5rem;">
                 <div>
-                    <h4 class="font-semibold mb-3" style="color: white;">HydroNexus</h4>
-                    <p class="text-sm" style="color: rgba(255,255,255,0.7);">
-                        Smart flood prediction and drainage monitoring system for urban resilience.
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.25rem;">
+                        <span style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--primary-600),var(--accent-500));display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🌊</span>
+                        <span style="font-size:1.1rem;font-weight:700;color:#fff;">HydroNexus</span>
+                    </div>
+                    <p style="font-size:0.875rem;color:var(--gray-400);line-height:1.7;margin-bottom:1.25rem;">
+                        Smart flood prediction & drainage monitoring for urban resilience. Protecting communities through data.
                     </p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Twitter">𝕏</a>
+                        <a href="#" aria-label="GitHub">GH</a>
+                        <a href="#" aria-label="LinkedIn">in</a>
+                    </div>
                 </div>
                 <div>
-                    <h5 class="font-semibold mb-3" style="color: white;">For Citizens</h5>
-                    <ul class="space-y-2">
-                        <li><a href="/citizen" style="color: rgba(255,255,255,0.7); text-decoration: none;">Flood Alerts</a></li>
-                        <li><a href="/citizen" style="color: rgba(255,255,255,0.7); text-decoration: none;">Report Issues</a></li>
-                        <li><a href="/monitoring" style="color: rgba(255,255,255,0.7); text-decoration: none;">Live Status</a></li>
+                    <h5>For Citizens</h5>
+                    <ul class="space-y-3">
+                        <li><a href="/citizen">Flood Alerts</a></li>
+                        <li><a href="/citizen">Report Issues</a></li>
+                        <li><a href="/monitoring">Live Status Map</a></li>
+                        <li><a href="/citizen">Emergency Info</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h5 class="font-semibold mb-3" style="color: white;">For Admins</h5>
-                    <ul class="space-y-2">
-                        <li><a href="/admin" style="color: rgba(255,255,255,0.7); text-decoration: none;">Dashboard</a></li>
-                        <li><a href="/admin" style="color: rgba(255,255,255,0.7); text-decoration: none;">Analytics</a></li>
-                        <li><a href="/admin" style="color: rgba(255,255,255,0.7); text-decoration: none;">Node Management</a></li>
+                    <h5>For Administrators</h5>
+                    <ul class="space-y-3">
+                        <li><a href="/login">Admin Dashboard</a></li>
+                        <li><a href="/login">Analytics</a></li>
+                        <li><a href="/login">Node Management</a></li>
+                        <li><a href="/login">User Management</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h5 class="font-semibold mb-3" style="color: white;">Contact</h5>
-                    <p class="text-sm" style="color: rgba(255,255,255,0.7);">
-                        Emergency: 911<br>
-                        Support: help@hydronexus.com<br>
-                        Technical: tech@hydronexus.com
-                    </p>
+                    <h5>Support & Legal</h5>
+                    <ul class="space-y-3">
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="mailto:help@hydronexus.com">Contact Support</a></li>
+                    </ul>
                 </div>
             </div>
-            <div class="border-t border-gray-700 mt-6 pt-6 text-center">
-                <p class="text-sm" style="color: rgba(255,255,255,0.7);">
-                    © 2026 HydroNexus. All rights reserved. Built for urban flood resilience.
-                </p>
+            <div class="footer-bottom">
+                <span>© 2026 HydroNexus. All rights reserved.</span>
+                <span>Emergency: <strong style="color:var(--white);">911</strong> · Support: <strong style="color:var(--white);">help@hydronexus.com</strong></span>
             </div>
         </div>
     </footer>
 
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script src="/js/main.js"></script>
     
@@ -360,11 +519,34 @@
             }));
         })();
 
+        // Navbar scroll shadow
+        (function() {
+            const nav = document.getElementById('mainNav');
+            window.addEventListener('scroll', () => {
+                nav.classList.toggle('scrolled', window.scrollY > 10);
+            });
+        })();
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            feather.replace();
             loadSystemStatus();
         });
+
+        // Animate counter
+        function animateValue(el, end, suffix) {
+            const dur = 700;
+            const start = 0;
+            const range = end - start;
+            const startTime = performance.now();
+            function step(ts) {
+                const elapsed = ts - startTime;
+                const progress = Math.min(elapsed / dur, 1);
+                const val = Math.floor(start + range * progress);
+                el.textContent = val + (suffix || '');
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
 
         // Load real-time system status
         async function loadSystemStatus() {
@@ -373,21 +555,40 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    document.getElementById('activeNodes').textContent = data.data.activeNodes || '3';
-                    document.getElementById('activeAlerts').textContent = data.data.activeAlerts || '2';
-                    document.getElementById('avgWaterLevel').textContent = (data.data.avgWaterLevel || 45) + '%';
+                    const nodes = data.data.activeNodes || 3;
+                    const alerts = data.data.activeAlerts || 2;
+                    const water = data.data.avgWaterLevel || 45;
+
+                    // Stat cards
+                    animateValue(document.getElementById('activeNodes'), nodes, '');
+                    animateValue(document.getElementById('activeAlerts'), alerts, '');
+                    animateValue(document.getElementById('avgWaterLevel'), water, '%');
+
+                    // Hero card
+                    animateValue(document.getElementById('heroNodes'), nodes, '');
+                    animateValue(document.getElementById('heroAlerts'), alerts, '');
+                    animateValue(document.getElementById('heroWater'), water, '%');
                     
-                    const health = document.getElementById('systemHealth');
                     const healthStatus = data.data.systemHealth || 'normal';
-                    health.className = `status status-${healthStatus}`;
-                    health.textContent = healthStatus.charAt(0).toUpperCase() + healthStatus.slice(1);
+                    document.getElementById('systemHealth').innerHTML =
+                        `<span class="status status-${healthStatus}">${healthStatus.charAt(0).toUpperCase() + healthStatus.slice(1)}</span>`;
+                    document.getElementById('heroHealth').innerHTML =
+                        `<span class="status status-${healthStatus}" style="margin-top:0.25rem;">${healthStatus.charAt(0).toUpperCase() + healthStatus.slice(1)}</span>`;
+
+                    // Update risk badge
+                    const riskBadge = document.getElementById('riskBadge');
+                    if (alerts >= 3) { riskBadge.className = 'risk-badge risk-high'; riskBadge.textContent = 'High Risk'; }
+                    else if (alerts >= 1) { riskBadge.className = 'risk-badge risk-medium'; riskBadge.textContent = 'Medium Risk'; }
+                    else { riskBadge.className = 'risk-badge risk-low'; riskBadge.textContent = 'Low Risk'; }
                 }
             } catch (error) {
                 console.error('Error loading system status:', error);
-                // Set default values
                 document.getElementById('activeNodes').textContent = '3';
                 document.getElementById('activeAlerts').textContent = '2';
                 document.getElementById('avgWaterLevel').textContent = '45%';
+                document.getElementById('heroNodes').textContent = '3';
+                document.getElementById('heroAlerts').textContent = '2';
+                document.getElementById('heroWater').textContent = '45%';
             }
         }
 

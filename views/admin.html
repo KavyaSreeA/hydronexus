@@ -9,7 +9,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
@@ -25,7 +25,7 @@
     
     <style>
         .sidebar {
-            width: 250px;
+            width: 260px;
             background: var(--white);
             border-right: 1px solid var(--gray-200);
             position: fixed;
@@ -33,6 +33,8 @@
             overflow-y: auto;
             z-index: 30;
             transition: transform var(--transition-normal);
+            display: flex;
+            flex-direction: column;
         }
         
         .sidebar.collapsed {
@@ -40,7 +42,7 @@
         }
         
         .main-content {
-            margin-left: 250px;
+            margin-left: 260px;
             min-height: 100vh;
             background: var(--gray-50);
             transition: margin-left var(--transition-normal);
@@ -53,11 +55,15 @@
         .sidebar-item {
             display: flex;
             align-items: center;
-            padding: 0.75rem 1rem;
+            padding: 0.625rem 1.25rem;
             color: var(--gray-600);
             text-decoration: none;
             transition: all var(--transition-fast);
             border-left: 3px solid transparent;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin: 1px 0.5rem 1px 0;
         }
         
         .sidebar-item:hover {
@@ -66,9 +72,10 @@
         }
         
         .sidebar-item.active {
-            background: var(--primary-blue);
-            color: var(--white);
-            border-left-color: var(--white);
+            background: var(--primary-50);
+            color: var(--primary-700);
+            border-left-color: var(--primary-600);
+            font-weight: 600;
         }
         
         .sidebar-item i {
@@ -77,32 +84,57 @@
         }
         
         .admin-header {
-            background: var(--white);
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--gray-200);
-            padding: 1rem 1.5rem;
+            padding: 0.875rem 1.5rem;
             position: sticky;
             top: 0;
             z-index: 20;
         }
         
         .stats-card {
-            background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
-            color: white;
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+        }
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+        }
+        .stats-card.primary::before { background: var(--primary-500); }
+        .stats-card.warning::before { background: var(--warning-500); }
+        .stats-card.success::before { background: var(--success-500); }
+        .stats-card.danger::before { background: var(--danger-500); }
+
+        .stats-card .stat-icon-wrap {
+            width: 48px; height: 48px;
             border-radius: var(--radius-lg);
+            display: flex; align-items: center; justify-content: center;
         }
-        
-        .stats-card.warning {
-            background: linear-gradient(135deg, var(--accent-orange), #fb923c);
+        .stats-card.primary .stat-icon-wrap { background: var(--primary-50); color: var(--primary-600); }
+        .stats-card.warning .stat-icon-wrap { background: var(--warning-50); color: var(--warning-600); }
+        .stats-card.success .stat-icon-wrap { background: var(--success-50); color: var(--success-600); }
+        .stats-card.danger .stat-icon-wrap { background: var(--danger-50); color: var(--danger-600); }
+
+        .stats-card .stats-value {
+            font-size: 1.75rem; font-weight: 800; color: var(--gray-900);
+            letter-spacing: -0.02em;
         }
-        
-        .stats-card.success {
-            background: linear-gradient(135deg, var(--accent-green), #34d399);
+        .stats-card .stats-label {
+            font-size: 0.8125rem; font-weight: 500; color: var(--gray-500);
+            text-transform: uppercase; letter-spacing: 0.04em;
         }
-        
-        .stats-card.danger {
-            background: linear-gradient(135deg, var(--accent-red), #f87171);
+        .stats-card .stats-sub {
+            font-size: 0.75rem; color: var(--gray-400); margin-top: 0.25rem;
         }
-        
+
         .chart-container {
             position: relative;
             height: 300px;
@@ -114,37 +146,17 @@
         }
         
         .node-status {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             display: inline-block;
             margin-right: 8px;
         }
         
-        .node-status.normal { background: var(--accent-green); }
-        .node-status.warning { background: var(--accent-orange); }
-        .node-status.critical { background: var(--accent-red); }
+        .node-status.normal { background: var(--success-500); }
+        .node-status.warning { background: var(--warning-500); }
+        .node-status.critical { background: var(--danger-500); }
         .node-status.offline { background: var(--gray-400); }
-        
-        .data-table {
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .data-table th {
-            background: var(--gray-50);
-            padding: 0.75rem 1rem;
-            font-weight: 600;
-            color: var(--gray-700);
-            border-bottom: 1px solid var(--gray-200);
-        }
-        
-        .data-table td {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--gray-100);
-        }
         
         .alert-row {
             cursor: pointer;
@@ -159,6 +171,7 @@
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -167,8 +180,8 @@
         
         .modal-content {
             background: var(--white);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-xl);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-2xl);
             max-width: 800px;
             width: 90vw;
             max-height: 90vh;
@@ -197,11 +210,7 @@
             .section-content {
                 padding: 1rem !important;
             }
-            .stats-card {
-                padding: 1rem !important;
-            }
-            .stats-card .text-3xl,
-            .stats-card .text-2xl {
+            .stats-card .stats-value {
                 font-size: 1.25rem;
             }
             .chart-container {
@@ -209,11 +218,6 @@
             }
             #adminMap {
                 height: 300px;
-            }
-            .data-table {
-                display: block;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
             }
             .flex.space-x-4,
             .flex.space-x-2 {
@@ -236,8 +240,11 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="p-6 border-b border-gray-200">
-            <h2 class="text-xl font-bold text-primary">🌊 HydroNexus</h2>
-            <p class="text-sm text-secondary">Admin Dashboard</p>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                <span style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--primary-600),var(--accent-500));display:flex;align-items:center;justify-content:center;font-size:0.9rem;">🌊</span>
+                <span style="font-size:1.1rem;font-weight:800;color:var(--gray-900);">HydroNexus</span>
+            </div>
+            <p class="text-xs text-secondary" style="margin-bottom:0;">Admin Dashboard</p>
         </div>
         
         <nav class="py-4">
@@ -315,40 +322,40 @@
         <section id="overview-section" class="section-content p-6">
             <!-- Stats Cards -->
             <div class="grid grid-cols-4 gap-6 mb-6">
-                <div class="stats-card p-6">
+                <div class="stats-card primary p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="font-semibold">Total Nodes</h3>
-                        <i data-feather="droplets"></i>
+                        <div class="stat-icon-wrap"><i data-feather="droplets"></i></div>
                     </div>
-                    <div class="text-3xl font-bold mb-2" id="totalNodes">--</div>
-                    <div class="text-sm opacity-90">Monitoring Points</div>
+                    <div class="stats-label">Total Nodes</div>
+                    <div class="stats-value" id="totalNodes">--</div>
+                    <div class="stats-sub">Monitoring Points</div>
                 </div>
                 
                 <div class="stats-card warning p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="font-semibold">Active Alerts</h3>
-                        <i data-feather="alert-triangle"></i>
+                        <div class="stat-icon-wrap"><i data-feather="alert-triangle"></i></div>
                     </div>
-                    <div class="text-3xl font-bold mb-2" id="activeAlertsCount">--</div>
-                    <div class="text-sm opacity-90">Requiring Attention</div>
+                    <div class="stats-label">Active Alerts</div>
+                    <div class="stats-value" id="activeAlertsCount">--</div>
+                    <div class="stats-sub">Requiring Attention</div>
                 </div>
                 
                 <div class="stats-card success p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="font-semibold">System Health</h3>
-                        <i data-feather="activity"></i>
+                        <div class="stat-icon-wrap"><i data-feather="activity"></i></div>
                     </div>
-                    <div class="text-2xl font-bold mb-2" id="systemHealthStatus">Normal</div>
-                    <div class="text-sm opacity-90">Overall Status</div>
+                    <div class="stats-label">System Health</div>
+                    <div class="stats-value" style="font-size:1.25rem;" id="systemHealthStatus">Normal</div>
+                    <div class="stats-sub">Overall Status</div>
                 </div>
                 
-                <div class="stats-card p-6">
+                <div class="stats-card danger p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="font-semibold">Citizen Reports</h3>
-                        <i data-feather="file-text"></i>
+                        <div class="stat-icon-wrap"><i data-feather="file-text"></i></div>
                     </div>
-                    <div class="text-3xl font-bold mb-2" id="citizenReportsCount">--</div>
-                    <div class="text-sm opacity-90">Today</div>
+                    <div class="stats-label">Citizen Reports</div>
+                    <div class="stats-value" id="citizenReportsCount">--</div>
+                    <div class="stats-sub">Today</div>
                 </div>
             </div>
 

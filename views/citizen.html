@@ -9,7 +9,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
@@ -25,10 +25,10 @@
             border-left: 4px solid var(--gray-300);
             transition: all var(--transition-fast);
         }
-        .alert-item.critical { border-left-color: var(--accent-red); }
-        .alert-item.high { border-left-color: var(--accent-orange); }
-        .alert-item.medium { border-left-color: var(--accent-orange); }
-        .alert-item.low { border-left-color: var(--accent-green); }
+        .alert-item.critical { border-left-color: var(--danger-500); }
+        .alert-item.high { border-left-color: var(--warning-500); }
+        .alert-item.medium { border-left-color: var(--warning-400); }
+        .alert-item.low { border-left-color: var(--success-500); }
         
         .alert-item:hover {
             box-shadow: var(--shadow-md);
@@ -48,8 +48,8 @@
         }
         
         .fab {
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -57,16 +57,19 @@
             font-size: 1.5rem;
             box-shadow: var(--shadow-lg);
             margin-bottom: 1rem;
+            border: none; cursor: pointer;
+            transition: all var(--transition-fast);
         }
+        .fab:hover { transform: scale(1.08); box-shadow: var(--shadow-xl); }
         
         .emergency-banner {
-            background: linear-gradient(45deg, var(--accent-red), #dc2626);
+            background: linear-gradient(135deg, var(--danger-600), var(--danger-700));
             animation: pulse 2s infinite;
         }
         
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+            50% { opacity: 0.85; }
         }
         
         .report-form {
@@ -83,16 +86,15 @@
         }
         
         .file-upload:hover {
-            border-color: var(--primary-blue);
-            background-color: var(--gray-50);
+            border-color: var(--primary-400);
+            background-color: var(--primary-50);
         }
         
         .file-upload.dragover {
-            border-color: var(--primary-blue);
-            background-color: var(--gray-100);
+            border-color: var(--primary-500);
+            background-color: var(--primary-50);
         }
 
-        /* Responsive citizen page */
         @media (max-width: 768px) {
             .nav-tab {
                 font-size: 0.75rem;
@@ -115,7 +117,10 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container flex items-center justify-between py-4">
-            <a href="/" class="navbar-brand">🌊 HydroNexus</a>
+            <a href="/" class="navbar-brand">
+                <span class="brand-icon">🌊</span>
+                HydroNexus
+            </a>
             <button class="hamburger" id="hamburger" aria-label="Toggle menu">
                 <span></span><span></span><span></span>
             </button>
@@ -139,11 +144,11 @@
     </div>
 
     <!-- Page Header -->
-    <section class="bg-gray-50 py-6">
+    <section style="background:linear-gradient(135deg,var(--primary-700),var(--primary-900));padding:2.5rem 0;">
         <div class="container">
             <div class="text-center">
-                <h1 class="text-2xl font-bold mb-2">Citizen Alert Portal</h1>
-                <p class="text-lg text-secondary">
+                <h1 style="font-size:clamp(1.5rem,3.5vw,2rem);font-weight:800;color:#fff;margin-bottom:0.5rem;">Citizen Alert Portal</h1>
+                <p style="font-size:1.0625rem;color:rgba(255,255,255,0.75);margin-bottom:0;">
                     Stay informed about flood risks and help keep your community safe
                 </p>
             </div>
@@ -153,36 +158,28 @@
     <!-- Quick Status Section -->
     <section class="py-6">
         <div class="container">
-            <div class="grid grid-cols-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <div class="text-3xl mb-2">🌡️</div>
-                        <h4 class="font-semibold">Risk Level</h4>
-                        <div class="status status-normal mt-2" id="currentRiskLevel">
-                            <span>Low</span>
-                        </div>
+            <div class="grid grid-cols-4" style="gap:1rem;">
+                <div class="stat-card stat-green">
+                    <div class="stat-icon">🌡️</div>
+                    <div class="stat-label">Risk Level</div>
+                    <div id="currentRiskLevel" style="margin-top:0.5rem;">
+                        <span class="risk-badge risk-low">Low</span>
                     </div>
                 </div>
-                <div class="card text-center">
-                    <div class="card-body">
-                        <div class="text-3xl mb-2">⚠️</div>
-                        <h4 class="font-semibold">Active Alerts</h4>
-                        <p class="text-2xl font-bold text-warning" id="citizenActiveAlerts">0</p>
-                    </div>
+                <div class="stat-card stat-orange">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-label">Active Alerts</div>
+                    <div class="stat-value" id="citizenActiveAlerts">0</div>
                 </div>
-                <div class="card text-center">
-                    <div class="card-body">
-                        <div class="text-3xl mb-2">📍</div>
-                        <h4 class="font-semibold">Your Area</h4>
-                        <p class="text-sm text-secondary" id="currentLocation">Detecting...</p>
-                    </div>
+                <div class="stat-card stat-blue">
+                    <div class="stat-icon">📍</div>
+                    <div class="stat-label">Your Area</div>
+                    <div class="text-sm text-secondary" style="margin-top:0.5rem;font-weight:500;" id="currentLocation">Detecting...</div>
                 </div>
-                <div class="card text-center">
-                    <div class="card-body">
-                        <div class="text-3xl mb-2">📋</div>
-                        <h4 class="font-semibold">My Reports</h4>
-                        <p class="text-2xl font-bold text-primary" id="userReports">0</p>
-                    </div>
+                <div class="stat-card" style="border-left: 4px solid var(--accent-500);">
+                    <div class="stat-icon" style="background:var(--accent-50);color:var(--accent-600);">📋</div>
+                    <div class="stat-label">My Reports</div>
+                    <div class="stat-value" id="userReports">0</div>
                 </div>
             </div>
         </div>
