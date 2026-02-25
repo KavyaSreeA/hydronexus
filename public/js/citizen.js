@@ -220,24 +220,36 @@ function initializeMap() {
             [userLocation.latitude, userLocation.longitude] : 
             [28.6139, 77.2090];
         
-        map = L.map('map').setView(defaultCenter, 12);
+        map = L.map('map', { zoomControl: false }).setView(defaultCenter, 14);
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+        // Use CartoDB Positron for a clean look
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OSM &copy; CARTO',
+            maxZoom: 19
         }).addTo(map);
         
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        
         if (userLocation) {
-            L.marker([userLocation.latitude, userLocation.longitude])
-                .addTo(map)
-                .bindPopup('Your Location')
-                .setIcon(L.divIcon({
+            L.marker([userLocation.latitude, userLocation.longitude], {
+                icon: L.divIcon({
                     className: 'user-location-marker',
-                    html: '<div style="background: #3b82f6; width: 12px; height: 12px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>',
-                    iconSize: [18, 18]
-                }));
+                    html: '<div style="background: #3b82f6; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 12px rgba(59,130,246,0.5);"></div>',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                })
+            }).addTo(map).bindPopup('<strong>Your Location</strong>');
         }
         
         loadMapData();
+        
+        // Add citizen marker styles
+        const s = document.createElement('style');
+        s.textContent = `
+            .user-location-marker, .citizen-map-marker { background: transparent !important; border: none !important; }
+            @keyframes citizen-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+        `;
+        document.head.appendChild(s);
     } catch (error) {
         console.error('Map initialization failed:', error);
         mapContainer.innerHTML = '<div class="text-center py-8"><p class="text-secondary">Map could not be loaded</p></div>';
@@ -273,19 +285,48 @@ function addDrainageNodesToMap(nodes) {
         
         const status = node.currentStatus?.operationalStatus || 'normal';
         const color = { normal: '#22c55e', warning: '#f59e0b', critical: '#ef4444', offline: '#6b7280' }[status] || '#22c55e';
+        const waterLevel = node.currentStatus?.waterLevel?.current || 0;
+        const blockage = node.currentStatus?.blockageLevel?.current || 0;
         
-        L.circleMarker([node.location.coordinates.lat, node.location.coordinates.lng], {
-            color: 'white', fillColor: color, fillOpacity: 0.8, weight: 2, radius: 8
-        }).addTo(map).bindPopup(`
-            <div class="p-2">
-                <h5 class="font-semibold">${node.name}</h5>
-                <p class="text-sm mb-2">${(node.type || '').replace('_', ' ').toUpperCase()}</p>
-                <div class="text-xs">
-                    <div>Status: <strong>${status}</strong></div>
-                    <div>Water Level: ${node.currentStatus?.waterLevel?.current || 0}%</div>
+        const icon = L.divIcon({
+            className: 'citizen-map-marker',
+            html: `<div style="
+                background: ${color};
+                width: 16px; height: 16px;
+                border-radius: 50%;
+                border: 3px solid white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                ${status === 'critical' ? 'animation: citizen-pulse 1.5s infinite;' : ''}
+            "></div>`,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+            popupAnchor: [0, -13]
+        });
+        
+        L.marker([node.location.coordinates.lat, node.location.coordinates.lng], { icon })
+            .addTo(map)
+            .bindPopup(`
+                <div style="min-width: 180px; font-family: 'Inter', sans-serif;">
+                    <div style="font-weight: 600; color: #2d3748; margin-bottom: 2px;">${node.name}</div>
+                    <div style="font-size: 0.7rem; color: #718096; text-transform: uppercase; margin-bottom: 8px;">${(node.type || '').replace('_', ' ')}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                        <div style="background: #f7fafc; padding: 4px 6px; border-radius: 4px;">
+                            <div style="font-size: 0.6rem; color: #a0aec0;">Water Level</div>
+                            <div style="font-size: 0.85rem; font-weight: 600;">${waterLevel}%</div>
+                        </div>
+                        <div style="background: #f7fafc; padding: 4px 6px; border-radius: 4px;">
+                            <div style="font-size: 0.6rem; color: #a0aec0;">Blockage</div>
+                            <div style="font-size: 0.85rem; font-weight: 600;">${blockage}%</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 6px;">
+                        <span style="display:inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+                            background: ${status === 'normal' ? '#c6f6d5' : status === 'warning' ? '#fefcbf' : '#fed7d7'};
+                            color: ${status === 'normal' ? '#276749' : status === 'warning' ? '#975a16' : '#c53030'};
+                        ">${status}</span>
+                    </div>
                 </div>
-            </div>
-        `);
+            `, { maxWidth: 240 });
     });
 }
 

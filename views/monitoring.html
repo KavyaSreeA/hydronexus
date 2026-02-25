@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    
     <!-- Styles -->
     <link rel="stylesheet" href="/css/main.css">
     
@@ -225,11 +228,149 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             flex: 1;
-            min-height: 400px;
+            min-height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #monitoringMap {
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+            border-radius: 12px;
+            z-index: 1;
+        }
+
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-size: 0.75rem;
+        }
+
+        .map-legend h4 {
+            font-size: 0.8rem;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .map-legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .map-control-btn {
+            background: white;
+            border: none;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .map-control-btn:hover {
+            background: #f7fafc;
+            transform: scale(1.05);
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px !important;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+        }
+
+        .leaflet-popup-content {
+            margin: 12px 16px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        .popup-node-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .popup-node-type {
+            font-size: 0.75rem;
             color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .popup-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .popup-metric {
+            background: #f7fafc;
+            padding: 6px 8px;
+            border-radius: 6px;
+        }
+
+        .popup-metric-label {
+            font-size: 0.625rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+        }
+
+        .popup-metric-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .popup-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .popup-status.normal { background: #c6f6d5; color: #276749; }
+        .popup-status.warning { background: #fefcbf; color: #975a16; }
+        .popup-status.critical { background: #fed7d7; color: #c53030; animation: pulse-bg 1.5s infinite; }
+
+        @keyframes pulse-bg {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         
         .alerts-panel {
@@ -427,12 +568,32 @@
         </div>
         
         <div class="main-content">
-            <!-- Map Placeholder -->
+            <!-- Interactive Leaflet Map -->
             <div class="map-container">
-                <div style="text-align: center;">
-                    <div style="font-size: 4rem; margin-bottom: 1rem;">🗺️</div>
-                    <p>Interactive Map</p>
-                    <p style="font-size: 0.875rem;">Integrate with Leaflet or Google Maps for real-time node visualization</p>
+                <div id="monitoringMap"></div>
+                <div class="map-controls">
+                    <button class="map-control-btn" onclick="fitAllNodes()" title="Fit all nodes">📍</button>
+                    <button class="map-control-btn" onclick="toggleHeatOverlay()" title="Toggle risk overlay">🌡️</button>
+                    <button class="map-control-btn" onclick="refreshMapData()" title="Refresh data">🔄</button>
+                </div>
+                <div class="map-legend">
+                    <h4>Node Status</h4>
+                    <div class="map-legend-item">
+                        <div class="map-legend-dot" style="background: #22c55e;"></div>
+                        <span>Normal</span>
+                    </div>
+                    <div class="map-legend-item">
+                        <div class="map-legend-dot" style="background: #f59e0b;"></div>
+                        <span>Warning</span>
+                    </div>
+                    <div class="map-legend-item">
+                        <div class="map-legend-dot" style="background: #ef4444;"></div>
+                        <span>Critical</span>
+                    </div>
+                    <div class="map-legend-item">
+                        <div class="map-legend-dot" style="background: #6b7280;"></div>
+                        <span>Offline</span>
+                    </div>
                 </div>
             </div>
             
@@ -449,6 +610,8 @@
         </div>
     </div>
     
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         // Initialize Socket.IO connection
@@ -459,6 +622,264 @@
             socket.emit('join-room', 'monitoring');
         });
         
+        // ==================== MAP ====================
+        let monitoringMap = null;
+        let mapMarkers = [];
+        let markerGroup = null;
+        let heatOverlayVisible = false;
+        let heatCircles = [];
+        let nodesCache = [];
+
+        function initMap() {
+            const container = document.getElementById('monitoringMap');
+            if (!container || monitoringMap) return;
+
+            try {
+                monitoringMap = L.map('monitoringMap', {
+                    zoomControl: false
+                }).setView([28.6139, 77.2090], 14);
+
+                // Styled tile layer (CartoDB Positron for a clean look)
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+                    maxZoom: 19
+                }).addTo(monitoringMap);
+
+                // Add zoom control to bottom-right
+                L.control.zoom({ position: 'bottomright' }).addTo(monitoringMap);
+
+                markerGroup = L.featureGroup().addTo(monitoringMap);
+
+                console.log('✅ Monitoring map initialized');
+            } catch (err) {
+                console.error('Map init error:', err);
+                container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#718096;"><p>Map could not be loaded</p></div>';
+            }
+        }
+
+        function addNodesToMap(nodes) {
+            if (!monitoringMap || !markerGroup) return;
+
+            // Clear existing markers
+            markerGroup.clearLayers();
+            mapMarkers = [];
+            heatCircles.forEach(c => monitoringMap.removeLayer(c));
+            heatCircles = [];
+            nodesCache = nodes;
+
+            const statusColors = {
+                normal: '#22c55e',
+                warning: '#f59e0b',
+                critical: '#ef4444',
+                offline: '#6b7280'
+            };
+
+            const statusPulse = {
+                normal: false,
+                warning: false,
+                critical: true,
+                offline: false
+            };
+
+            nodes.forEach(node => {
+                const lat = node.location?.coordinates?.lat;
+                const lng = node.location?.coordinates?.lng;
+                if (!lat || !lng) return;
+
+                const status = node.currentStatus?.operationalStatus || 'normal';
+                const color = statusColors[status] || '#22c55e';
+                const waterLevel = node.currentStatus?.waterLevel?.current || 0;
+                const blockage = node.currentStatus?.blockageLevel?.current || 0;
+                const flowRate = node.currentStatus?.flowRate?.current || 0;
+
+                // Create pulsing marker for critical nodes
+                const pulseClass = statusPulse[status] ? 'marker-pulse' : '';
+                const markerHtml = `
+                    <div class="custom-marker ${pulseClass}" style="
+                        background: ${color};
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        border: 3px solid white;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                        position: relative;
+                    ">
+                        <span style="
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            font-size: 10px;
+                            color: white;
+                            font-weight: bold;
+                        ">${status === 'critical' ? '!' : ''}</span>
+                    </div>
+                    ${statusPulse[status] ? `<div style="
+                        position: absolute;
+                        top: -4px;
+                        left: -4px;
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 50%;
+                        border: 2px solid ${color};
+                        opacity: 0;
+                        animation: marker-ring 1.5s ease-out infinite;
+                    "></div>` : ''}
+                `;
+
+                const icon = L.divIcon({
+                    className: 'leaflet-marker-custom',
+                    html: markerHtml,
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13],
+                    popupAnchor: [0, -16]
+                });
+
+                const marker = L.marker([lat, lng], { icon })
+                    .addTo(markerGroup)
+                    .bindPopup(`
+                        <div style="min-width: 200px;">
+                            <div class="popup-node-name">${node.name}</div>
+                            <div class="popup-node-type">${(node.type || '').replace('_', ' ')}</div>
+                            <div class="popup-metrics">
+                                <div class="popup-metric">
+                                    <div class="popup-metric-label">Water Level</div>
+                                    <div class="popup-metric-value">${waterLevel}%</div>
+                                </div>
+                                <div class="popup-metric">
+                                    <div class="popup-metric-label">Blockage</div>
+                                    <div class="popup-metric-value">${blockage}%</div>
+                                </div>
+                                <div class="popup-metric">
+                                    <div class="popup-metric-label">Flow Rate</div>
+                                    <div class="popup-metric-value">${flowRate} L/s</div>
+                                </div>
+                                <div class="popup-metric">
+                                    <div class="popup-metric-label">Node ID</div>
+                                    <div class="popup-metric-value">${node.nodeId}</div>
+                                </div>
+                            </div>
+                            <div class="popup-status ${status}">${status.toUpperCase()}</div>
+                        </div>
+                    `, { maxWidth: 260 });
+
+                marker._nodeId = node.nodeId;
+                mapMarkers.push(marker);
+
+                // Add risk heat circle (always present, toggled with button)
+                const riskRadius = Math.max(waterLevel, blockage) * 3 + 50;
+                const heatCircle = L.circle([lat, lng], {
+                    radius: riskRadius,
+                    fillColor: color,
+                    fillOpacity: heatOverlayVisible ? 0.15 : 0,
+                    color: color,
+                    weight: heatOverlayVisible ? 1 : 0,
+                    opacity: heatOverlayVisible ? 0.3 : 0
+                }).addTo(monitoringMap);
+                heatCircles.push(heatCircle);
+            });
+
+            // Fit map to markers
+            if (mapMarkers.length > 0) {
+                monitoringMap.fitBounds(markerGroup.getBounds().pad(0.3));
+            }
+        }
+
+        function addAlertsToMap(alerts) {
+            if (!monitoringMap || !alerts) return;
+
+            alerts.forEach(alert => {
+                const lat = alert.location?.coordinates?.lat;
+                const lng = alert.location?.coordinates?.lng;
+                if (!lat || !lng) return;
+
+                const severityColors = {
+                    critical: '#ef4444',
+                    high: '#f59e0b',
+                    medium: '#3b82f6',
+                    low: '#22c55e'
+                };
+                const color = severityColors[alert.severity] || '#f59e0b';
+
+                L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        className: 'leaflet-marker-custom',
+                        html: `<div style="
+                            background: ${color};
+                            color: white;
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: bold;
+                            font-size: 14px;
+                            border: 2px solid white;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                        ">⚠</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                        popupAnchor: [0, -14]
+                    })
+                }).addTo(markerGroup).bindPopup(`
+                    <div style="min-width: 180px;">
+                        <div class="popup-node-name">🚨 ${alert.title}</div>
+                        <p style="font-size: 0.8rem; color: #4a5568; margin: 6px 0;">${alert.message || ''}</p>
+                        <div class="popup-status ${alert.severity}">${(alert.severity || '').toUpperCase()}</div>
+                    </div>
+                `);
+            });
+        }
+
+        function fitAllNodes() {
+            if (markerGroup && mapMarkers.length > 0) {
+                monitoringMap.fitBounds(markerGroup.getBounds().pad(0.3));
+            }
+        }
+
+        function toggleHeatOverlay() {
+            heatOverlayVisible = !heatOverlayVisible;
+            const statusColors = { normal: '#22c55e', warning: '#f59e0b', critical: '#ef4444', offline: '#6b7280' };
+
+            heatCircles.forEach((circle, i) => {
+                const node = nodesCache[i];
+                const status = node?.currentStatus?.operationalStatus || 'normal';
+                const color = statusColors[status] || '#22c55e';
+                circle.setStyle({
+                    fillOpacity: heatOverlayVisible ? 0.15 : 0,
+                    weight: heatOverlayVisible ? 1 : 0,
+                    opacity: heatOverlayVisible ? 0.3 : 0
+                });
+            });
+        }
+
+        function refreshMapData() {
+            fetchData();
+        }
+
+        // Highlight node on map when sidebar item is clicked
+        function focusNodeOnMap(nodeId) {
+            const marker = mapMarkers.find(m => m._nodeId === nodeId);
+            if (marker && monitoringMap) {
+                monitoringMap.setView(marker.getLatLng(), 16, { animate: true });
+                marker.openPopup();
+            }
+        }
+
+        // Add keyframe for marker pulse ring
+        const pulseStyle = document.createElement('style');
+        pulseStyle.textContent = `
+            @keyframes marker-ring {
+                0% { transform: scale(1); opacity: 0.6; }
+                100% { transform: scale(2.5); opacity: 0; }
+            }
+            .leaflet-marker-custom { background: transparent !important; border: none !important; }
+        `;
+        document.head.appendChild(pulseStyle);
+
+        // ==================== DATA ====================
+
         // Fetch initial data
         async function fetchData() {
             try {
@@ -486,7 +907,9 @@
                 const nodesData = await nodesRes.json();
                 
                 if (nodesData.success) {
-                    renderNodes(nodesData.data.nodes);
+                    const nodes = nodesData.data.nodes || nodesData.data || [];
+                    renderNodes(nodes);
+                    addNodesToMap(nodes);
                 }
                 
                 // Fetch active alerts
@@ -494,8 +917,10 @@
                 const alertsData = await alertsRes.json();
                 
                 if (alertsData.success) {
-                    renderAlerts(alertsData.data.alerts);
-                    document.getElementById('alertCount').textContent = alertsData.data.count || 0;
+                    const alerts = alertsData.data.alerts || alertsData.data || [];
+                    renderAlerts(alerts);
+                    addAlertsToMap(alerts);
+                    document.getElementById('alertCount').textContent = alertsData.data.count || alerts.length || 0;
                 }
             } catch (error) {
                 console.error('Failed to fetch data:', error);
@@ -516,7 +941,7 @@
                 const blockage = node.currentStatus?.blockageLevel?.current || 0;
                 
                 return `
-                    <div class="node-item" data-node-id="${node.nodeId}">
+                    <div class="node-item" data-node-id="${node.nodeId}" onclick="focusNodeOnMap('${node.nodeId}')" style="cursor: pointer;">
                         <div class="node-item-header">
                             <span class="node-id">${node.nodeId}</span>
                             <span class="node-status ${status}">${status}</span>
@@ -607,7 +1032,8 @@
             });
         });
         
-        // Initial load
+        // Initialize map and load data
+        initMap();
         fetchData();
         
         // Refresh every 30 seconds

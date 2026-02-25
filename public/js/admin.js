@@ -167,6 +167,8 @@ function initializeCharts() {
 }
 
 // Initialize Map
+let adminMarkerGroup = null;
+
 function initializeMap() {
     const mapContainer = document.getElementById('adminMap');
     if (!mapContainer) return;
@@ -177,52 +179,173 @@ function initializeMap() {
     }
     
     try {
-        adminMap = L.map('adminMap').setView([28.6139, 77.2090], 12);
+        adminMap = L.map('adminMap', { zoomControl: false }).setView([28.6139, 77.2090], 14);
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OSM &copy; CARTO',
+            maxZoom: 19
         }).addTo(adminMap);
         
-        // Add drainage nodes to map
-        addNodesToMap();
+        L.control.zoom({ position: 'bottomright' }).addTo(adminMap);
+        adminMarkerGroup = L.featureGroup().addTo(adminMap);
         
-        console.log('Map initialized successfully');
+        // Fetch live data for map
+        loadMapNodes();
+        
+        console.log('Admin map initialized successfully');
     } catch (error) {
         console.error('Map initialization error:', error);
         mapContainer.innerHTML = '<div class="text-center p-8 text-secondary">Map could not be loaded</div>';
     }
 }
 
-// Add nodes to map
-function addNodesToMap() {
-    if (!adminMap) return;
+// Load nodes from API onto admin map
+async function loadMapNodes() {
+    if (!adminMap || !adminMarkerGroup) return;
     
-    const nodes = [
-        { name: 'Main Street Storm Drain', lat: 28.6139, lng: 77.2090, status: 'normal', waterLevel: 25 },
-        { name: 'Park Avenue Catch Basin', lat: 28.6129, lng: 77.2095, status: 'warning', waterLevel: 75 },
-        { name: 'Industrial Zone Pump', lat: 28.6149, lng: 77.2085, status: 'critical', waterLevel: 90 },
-        { name: 'Riverside Culvert', lat: 28.6159, lng: 77.2100, status: 'normal', waterLevel: 45 },
-        { name: 'Market Area Channel', lat: 28.6120, lng: 77.2110, status: 'normal', waterLevel: 60 }
-    ];
+    try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const [nodesRes, alertsRes] = await Promise.all([
+            fetch('/api/drainage', { headers }).then(r => r.json()).catch(() => ({ success: false })),
+            fetch('/api/alerts/active', { headers }).then(r => r.json()).catch(() => ({ success: false }))
+        ]);
+        
+        adminMarkerGroup.clearLayers();
+        
+        if (nodesRes.success) {
+            const nodes = nodesRes.data?.nodes || nodesRes.data || [];
+            addNodesToMap(nodes);
+        }
+        
+        if (alertsRes.success) {
+            const alerts = alertsRes.data?.alerts || alertsRes.data || [];
+            addAdminAlertsToMap(alerts);
+        }
+    } catch (e) {
+        console.warn('Failed to load map data:', e);
+        addFallbackNodes();
+    }
+}
+
+// Add nodes to admin map from API data
+function addNodesToMap(nodes) {
+    if (!adminMap || !adminMarkerGroup) return;
     
-    const colors = { normal: '#22c55e', warning: '#f59e0b', critical: '#ef4444' };
+    const colors = { normal: '#22c55e', warning: '#f59e0b', critical: '#ef4444', offline: '#6b7280' };
     
     nodes.forEach(node => {
-        L.circleMarker([node.lat, node.lng], {
-            radius: 10,
-            fillColor: colors[node.status] || '#22c55e',
-            color: '#fff',
-            weight: 2,
-            fillOpacity: 0.9
-        }).addTo(adminMap).bindPopup(`
-            <div style="min-width: 150px;">
-                <strong>${node.name}</strong><br>
-                Status: <span style="color: ${colors[node.status]}">${node.status.toUpperCase()}</span><br>
-                Water Level: ${node.waterLevel}%
+        const lat = node.location?.coordinates?.lat;
+        const lng = node.location?.coordinates?.lng;
+        if (!lat || !lng) return;
+        
+        const status = node.currentStatus?.operationalStatus || 'normal';
+        const color = colors[status] || '#22c55e';
+        const waterLevel = node.currentStatus?.waterLevel?.current || 0;
+        const blockage = node.currentStatus?.blockageLevel?.current || 0;
+        const flowRate = node.currentStatus?.flowRate?.current || 0;
+        
+        const icon = L.divIcon({
+            className: 'leaflet-admin-marker',
+            html: `<div style="
+                background: ${color};
+                width: 18px; height: 18px;
+                border-radius: 50%;
+                border: 3px solid white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                ${status === 'critical' ? 'animation: admin-pulse 1.5s infinite;' : ''}
+            "></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            popupAnchor: [0, -14]
+        });
+        
+        L.marker([lat, lng], { icon }).addTo(adminMarkerGroup).bindPopup(`
+            <div style="min-width: 200px; font-family: 'Inter', sans-serif;">
+                <div style="font-weight: 600; color: #2d3748; margin-bottom: 2px;">${node.name}</div>
+                <div style="font-size: 0.7rem; color: #718096; text-transform: uppercase; margin-bottom: 8px;">${(node.type || '').replace('_', ' ')} · ${node.nodeId}</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                    <div style="background: #f7fafc; padding: 4px 6px; border-radius: 4px;">
+                        <div style="font-size: 0.6rem; color: #a0aec0;">Water</div>
+                        <div style="font-size: 0.85rem; font-weight: 600;">${waterLevel}%</div>
+                    </div>
+                    <div style="background: #f7fafc; padding: 4px 6px; border-radius: 4px;">
+                        <div style="font-size: 0.6rem; color: #a0aec0;">Blockage</div>
+                        <div style="font-size: 0.85rem; font-weight: 600;">${blockage}%</div>
+                    </div>
+                    <div style="background: #f7fafc; padding: 4px 6px; border-radius: 4px;">
+                        <div style="font-size: 0.6rem; color: #a0aec0;">Flow</div>
+                        <div style="font-size: 0.85rem; font-weight: 600;">${flowRate} L/s</div>
+                    </div>
+                    <div style="background: #f7fafc; padding: 4px 6px; border-radius: 4px;">
+                        <div style="font-size: 0.6rem; color: #a0aec0;">Priority</div>
+                        <div style="font-size: 0.85rem; font-weight: 600;">${node.priority || 'medium'}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 8px;">
+                    <span style="display:inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+                        background: ${status === 'normal' ? '#c6f6d5' : status === 'warning' ? '#fefcbf' : '#fed7d7'};
+                        color: ${status === 'normal' ? '#276749' : status === 'warning' ? '#975a16' : '#c53030'};
+                    ">${status}</span>
+                </div>
+            </div>
+        `, { maxWidth: 260 });
+    });
+    
+    if (nodes.length > 0) {
+        adminMap.fitBounds(adminMarkerGroup.getBounds().pad(0.3));
+    }
+}
+
+// Add alerts to admin map
+function addAdminAlertsToMap(alerts) {
+    if (!adminMap || !adminMarkerGroup) return;
+    
+    alerts.forEach(alert => {
+        const lat = alert.location?.coordinates?.lat;
+        const lng = alert.location?.coordinates?.lng;
+        if (!lat || !lng) return;
+        
+        const sevColor = { critical: '#ef4444', high: '#f59e0b', medium: '#3b82f6', low: '#22c55e' }[alert.severity] || '#f59e0b';
+        
+        L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'leaflet-admin-marker',
+                html: `<div style="background:${sevColor};color:white;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">⚠</div>`,
+                iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -13]
+            })
+        }).addTo(adminMarkerGroup).bindPopup(`
+            <div style="min-width: 180px; font-family: 'Inter', sans-serif;">
+                <div style="font-weight: 600; color: #2d3748;">🚨 ${alert.title}</div>
+                <p style="font-size: 0.8rem; color: #4a5568; margin: 4px 0;">${alert.message || ''}</p>
+                <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:600;text-transform:uppercase;background:${sevColor}20;color:${sevColor};">${alert.severity}</span>
             </div>
         `);
     });
 }
+
+// Fallback hardcoded nodes
+function addFallbackNodes() {
+    const nodes = [
+        { name: 'Main Street Storm Drain', location: { coordinates: { lat: 28.6139, lng: 77.2090 }}, type: 'storm_drain', nodeId: 'DN0001', currentStatus: { operationalStatus: 'normal', waterLevel: { current: 25 }, blockageLevel: { current: 15 }, flowRate: { current: 120 }}, priority: 'medium' },
+        { name: 'Park Avenue Catch Basin', location: { coordinates: { lat: 28.6129, lng: 77.2095 }}, type: 'catch_basin', nodeId: 'DN0002', currentStatus: { operationalStatus: 'warning', waterLevel: { current: 75 }, blockageLevel: { current: 35 }, flowRate: { current: 85 }}, priority: 'high' },
+        { name: 'Industrial Zone Pump', location: { coordinates: { lat: 28.6149, lng: 77.2085 }}, type: 'pump_station', nodeId: 'DN0003', currentStatus: { operationalStatus: 'critical', waterLevel: { current: 90 }, blockageLevel: { current: 55 }, flowRate: { current: 180 }}, priority: 'critical' },
+        { name: 'Riverside Culvert', location: { coordinates: { lat: 28.6159, lng: 77.2100 }}, type: 'culvert', nodeId: 'DN0004', currentStatus: { operationalStatus: 'normal', waterLevel: { current: 45 }, blockageLevel: { current: 10 }, flowRate: { current: 150 }}, priority: 'medium' },
+        { name: 'Market Area Channel', location: { coordinates: { lat: 28.6120, lng: 77.2110 }}, type: 'channel', nodeId: 'DN0005', currentStatus: { operationalStatus: 'normal', waterLevel: { current: 60 }, blockageLevel: { current: 25 }, flowRate: { current: 100 }}, priority: 'medium' }
+    ];
+    addNodesToMap(nodes);
+}
+
+// Add pulse animation for admin markers
+(function() {
+    const s = document.createElement('style');
+    s.textContent = `
+        @keyframes admin-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.1)} }
+        .leaflet-admin-marker { background: transparent !important; border: none !important; }
+    `;
+    document.head.appendChild(s);
+})();
 
 // Load dashboard statistics
 async function loadDashboardStats() {

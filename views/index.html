@@ -11,6 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    
     <!-- Styles -->
     <link rel="stylesheet" href="/css/main.css">
     
@@ -357,6 +360,31 @@
         </div>
     </section>
 
+    <!-- ===== LIVE MAP PREVIEW ===== -->
+    <section class="section" style="background: var(--gray-50, #f0f4f8); padding: 5rem 0;">
+        <div class="container">
+            <div class="text-center mb-8">
+                <span class="text-xs text-uppercase" style="color: var(--primary-600, #2563eb); font-weight: 600; letter-spacing: 0.1em;">Live Network Map</span>
+                <h2 class="text-display" style="font-size: clamp(1.5rem, 3vw, 2.25rem); margin-top: 0.5rem;">
+                    Real-time Drainage Network
+                </h2>
+                <p class="text-lg text-secondary" style="max-width: 580px; margin: 0.75rem auto 0;">
+                    Monitor every node in the city's drainage infrastructure with live status updates and risk indicators.
+                </p>
+            </div>
+            <div class="mini-map-wrapper" style="max-width: 960px; margin: 0 auto;">
+                <div id="homeMap" style="height: 380px; width: 100%;"></div>
+                <div class="mini-map-overlay">
+                    <div>
+                        <h3>🌊 HydroNexus Network</h3>
+                        <p id="homeMapStatus">Loading nodes...</p>
+                    </div>
+                    <a href="/monitoring" class="mini-map-btn">Open Full Map →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ===== FOR CITIZENS / ADMINS ===== -->
     <section class="section">
         <div class="container">
@@ -497,6 +525,7 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script src="/js/main.js"></script>
     
@@ -594,6 +623,78 @@
 
         // Auto-refresh status every 30 seconds
         setInterval(loadSystemStatus, 30000);
+
+        // ===== HOMEPAGE MINI MAP =====
+        (function initHomeMap() {
+            const mapEl = document.getElementById('homeMap');
+            if (!mapEl || typeof L === 'undefined') return;
+
+            const homeMap = L.map('homeMap', {
+                zoomControl: false,
+                scrollWheelZoom: false,
+                dragging: true,
+                attributionControl: false
+            }).setView([28.6139, 77.2090], 14);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19
+            }).addTo(homeMap);
+
+            // Fetch real nodes
+            fetch('/api/drainage')
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) return;
+                    const nodes = res.data?.nodes || res.data || [];
+                    const statusColors = { normal: '#22c55e', warning: '#f59e0b', critical: '#ef4444', offline: '#6b7280' };
+                    let normalCount = 0, warnCount = 0, critCount = 0;
+
+                    nodes.forEach(node => {
+                        const lat = node.location?.coordinates?.lat;
+                        const lng = node.location?.coordinates?.lng;
+                        if (!lat || !lng) return;
+
+                        const status = node.currentStatus?.operationalStatus || 'normal';
+                        const color = statusColors[status] || '#22c55e';
+                        if (status === 'normal') normalCount++;
+                        else if (status === 'warning') warnCount++;
+                        else if (status === 'critical') critCount++;
+
+                        L.circleMarker([lat, lng], {
+                            radius: 8,
+                            fillColor: color,
+                            color: '#fff',
+                            weight: 2,
+                            fillOpacity: 0.9
+                        }).addTo(homeMap).bindPopup(
+                            `<strong>${node.name}</strong><br><span style="color:${color};font-weight:600;">${status.toUpperCase()}</span> · Water: ${node.currentStatus?.waterLevel?.current || 0}%`
+                        );
+
+                        // Subtle risk halo for warning/critical
+                        if (status !== 'normal') {
+                            L.circle([lat, lng], {
+                                radius: 150,
+                                fillColor: color,
+                                fillOpacity: 0.08,
+                                color: color,
+                                weight: 1,
+                                opacity: 0.2
+                            }).addTo(homeMap);
+                        }
+                    });
+
+                    const statusEl = document.getElementById('homeMapStatus');
+                    if (statusEl) statusEl.textContent = `${nodes.length} nodes · ${normalCount} normal · ${warnCount} warning · ${critCount} critical`;
+                })
+                .catch(() => {
+                    const statusEl = document.getElementById('homeMapStatus');
+                    if (statusEl) statusEl.textContent = 'Live data unavailable';
+                });
+
+            // Ensure map resizes correctly
+            setTimeout(() => homeMap.invalidateSize(), 300);
+            window.addEventListener('resize', () => homeMap.invalidateSize());
+        })();
     </script>
 </body>
 </html>
